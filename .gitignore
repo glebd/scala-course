@@ -11,6 +11,7 @@ project/boot/
 project/plugins/project/
 bin
 out
+.history
 
 # Scala-IDE specific
 .scala_dependencies
