@@ -120,7 +120,7 @@ class FunSetSuite extends FunSuite {
       assert(!contains(i1, 3))
     }
   }
-
+  
   test("difference contains elements of s that are not in t") {
     new TestSets {
       val u1 = union(s1, s2)
@@ -128,6 +128,15 @@ class FunSetSuite extends FunSuite {
       val d = diff(u1, u2)
       assert(contains(d, 2))
       assert(!contains(d, 1))
+    }
+  }
+  
+  test("filter returns elements in set that satisfy a predicate") {
+    new TestSets {
+      val s = union(s1, s2)
+      val f = filter(s, x => x < 2)
+      assert(contains(f, 1))
+      assert(!contains(f, 2))
     }
   }
 }
