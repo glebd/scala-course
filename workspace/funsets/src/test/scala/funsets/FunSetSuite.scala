@@ -155,6 +155,13 @@ class FunSetSuite extends FunSuite {
     }
   }
   
+  test("forall checks if all elements are 1 and fails") {
+    new TestSets {
+      val s = union(s1, s2)
+      assert(!forall(s, x => x == 1))
+    }
+  }
+
   test("forall checks if no elements are negative") {
     new TestSets {
       val s = union(s1, s2)
