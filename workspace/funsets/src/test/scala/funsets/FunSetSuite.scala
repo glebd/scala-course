@@ -77,6 +77,7 @@ class FunSetSuite extends FunSuite {
     val s1 = singletonSet(1)
     val s2 = singletonSet(2)
     val s3 = singletonSet(3)
+    val s1000 = singletonSet(1000)
   }
 
   /**
@@ -137,6 +138,33 @@ class FunSetSuite extends FunSuite {
       val f = filter(s, x => x < 2)
       assert(contains(f, 1))
       assert(!contains(f, 2))
+    }
+  }
+  
+  test("forall checks if all elements are positive") {
+    new TestSets {
+      val s = union(s1, s2)
+      assert(forall(s, x => x > 0))
+    }
+  }
+  
+  test("forall checks if all elements are 1 or 2") {
+    new TestSets {
+      val s = union(s1, s2)
+      assert(forall(s, x => x == 1 || x == 2))
+    }
+  }
+  
+  test("forall checks if no elements are negative") {
+    new TestSets {
+      val s = union(s1, s2)
+      assert(!forall(s, x => x < 0))
+    }
+  }
+  
+  test("forall checks if all elements are 1000") {
+    new TestSets {
+      assert(forall(s1000, x => x == 1000))
     }
   }
 }
