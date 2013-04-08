@@ -161,7 +161,7 @@ class FunSetSuite extends FunSuite {
       assert(!forall(s, x => x == 1))
     }
   }
-
+  
   test("forall checks if no elements are negative") {
     new TestSets {
       val s = union(s1, s2)
@@ -172,6 +172,27 @@ class FunSetSuite extends FunSuite {
   test("forall checks if all elements are 1000") {
     new TestSets {
       assert(forall(s1000, x => x == 1000))
+    }
+  }
+  
+  test("exists checks if there is an element 1") {
+    new TestSets {
+      val s = union(s1, s2)
+      assert(exists(s, x => x == 1))
+    }
+  }
+  
+  test("exists checks if there is an element 1 or 2") {
+    new TestSets {
+      val s = union(s1, s2)
+      assert(exists(s, x => x == 1 || x == 2))
+    }
+  }
+  
+  test("exists checks if there is an element 3 and fails") {
+    new TestSets {
+      val s = union(s1, s2)
+      assert(!exists(s, x => x == 3))
     }
   }
 }
