@@ -78,6 +78,7 @@ class FunSetSuite extends FunSuite {
     val s2 = singletonSet(2)
     val s3 = singletonSet(3)
     val s1000 = singletonSet(1000)
+    val emptySet: Set = x => false
   }
 
   /**
@@ -175,6 +176,12 @@ class FunSetSuite extends FunSuite {
     }
   }
   
+  test("forall returns true for an empty set") {
+    new TestSets {
+      assert(forall(emptySet, x => x == 1000))
+    }
+  }
+
   test("exists checks if there is an element 1") {
     new TestSets {
       val s = union(s1, s2)
