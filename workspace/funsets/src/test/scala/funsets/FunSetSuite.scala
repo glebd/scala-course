@@ -181,7 +181,7 @@ class FunSetSuite extends FunSuite {
       assert(forall(emptySet, x => x == 1000))
     }
   }
-
+  
   test("exists checks if there is an element 1") {
     new TestSets {
       val s = union(s1, s2)
@@ -200,6 +200,18 @@ class FunSetSuite extends FunSuite {
     new TestSets {
       val s = union(s1, s2)
       assert(!exists(s, x => x == 3))
+    }
+  }
+  
+  test("map transforms a set to another set") {
+    new TestSets {
+      val s = union(union(s1, s2), s3)
+      printSet(s)
+      val sx = map(s, x => x + 1)
+      printSet(sx)
+      assert(!exists(sx, x => x == 1))
+      assert(exists(sx, x => x == 2))
+      assert(exists(sx, x => x == 3))
     }
   }
 }
