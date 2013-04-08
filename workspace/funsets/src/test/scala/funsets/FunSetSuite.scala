@@ -206,9 +206,7 @@ class FunSetSuite extends FunSuite {
   test("map transforms a set to another set") {
     new TestSets {
       val s = union(union(s1, s2), s3)
-      printSet(s)
       val sx = map(s, x => x + 1)
-      printSet(sx)
       assert(!exists(sx, x => x == 1))
       assert(exists(sx, x => x == 2))
       assert(exists(sx, x => x == 3))
