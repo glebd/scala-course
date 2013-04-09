@@ -1,5 +1,5 @@
 package greeter
 
 object Hello extends App {
-	println("Hello, World!")
+  override def main(args: Array[String]) = println("Hello World!")
 }
