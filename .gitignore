@@ -1,6 +1,7 @@
 *.class
 *.log
 *.iml
+*.*~
 
 # sbt specific
 bin
@@ -8,7 +9,7 @@ out
 .history
 
 # Scala-IDE specific
-*cache*
+.cache
 *metadata*
 .worksheet
 *$global*
