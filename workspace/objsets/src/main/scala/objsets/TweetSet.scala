@@ -10,6 +10,15 @@ class Tweet(val user: String, val text: String, val retweets: Int) {
   override def toString: String =
     "User: " + user + "\n" +
     "Text: " + text + " [" + retweets + "]"
+  
+  def mentions(keywords: List[String]): Boolean = {
+    val result = keywords.exists(x => text.contains(x))
+    if (result) {
+      println("\nText: " + text)
+      println("Keywords: " + keywords)
+    }
+    result
+  }
 }
 
 /**
@@ -89,6 +98,8 @@ abstract class TweetSet {
     }
     loop(this, Nil)
   }
+  
+  def mentions(keywords: List[String]): TweetSet = filter(x => x.mentions(keywords))
 
   /**
    * The following methods are already implemented
@@ -213,8 +224,8 @@ object GoogleVsApple {
   val google = List("android", "Android", "galaxy", "Galaxy", "nexus", "Nexus")
   val apple = List("ios", "iOS", "iphone", "iPhone", "ipad", "iPad")
 
-  lazy val googleTweets: TweetSet = ???
-  lazy val appleTweets: TweetSet = ???
+  lazy val googleTweets: TweetSet = TweetReader.allTweets.mentions(google)
+  lazy val appleTweets: TweetSet = TweetReader.allTweets.mentions(apple)
 
   /**
    * A list of all tweets mentioning a keyword from either apple or google,
@@ -224,6 +235,10 @@ object GoogleVsApple {
 }
 
 object Main extends App {
+  println("\nGoogle tweets")
+  GoogleVsApple.googleTweets foreach println
+  println("\nApple tweets")
+  GoogleVsApple.appleTweets foreach println
   // Print the trending tweets
-  GoogleVsApple.trending foreach println
+  //GoogleVsApple.trending foreach println
 }

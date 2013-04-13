@@ -75,4 +75,14 @@ class TweetSetSuite extends FunSuite {
       assert(trends.head.user == "a" || trends.head.user == "b")
     }
   }
+  
+  test("mentions: Android") {
+    val t1 = new Empty
+    val t2 = t1.incl(new Tweet("u1", "Bla bla bla Android bla", 10))
+    val t3 = t2.incl(new Tweet("u2", "Foo bar iOS baz glop", 20))
+    assert(!t2.mentions(List("Android")).isEmpty)
+    assert(!t3.mentions(List("Android")).isEmpty)
+    assert(!t3.mentions(List("iOS")).isEmpty)
+    assert(!t3.mentions(List("Android", "iOS")).isEmpty)
+  }
 }
