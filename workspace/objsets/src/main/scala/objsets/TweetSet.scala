@@ -11,14 +11,7 @@ class Tweet(val user: String, val text: String, val retweets: Int) {
     "User: " + user + "\n" +
     "Text: " + text + " [" + retweets + "]"
   
-  def mentions(keywords: List[String]): Boolean = {
-    val result = keywords.exists(x => text.contains(x))
-    if (result) {
-      println("\nText: " + text)
-      println("Keywords: " + keywords)
-    }
-    result
-  }
+  def mentions(keywords: List[String]): Boolean = keywords.exists(x => text.contains(x))
 }
 
 /**
