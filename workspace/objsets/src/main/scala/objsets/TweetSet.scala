@@ -224,14 +224,10 @@ object GoogleVsApple {
    * A list of all tweets mentioning a keyword from either apple or google,
    * sorted by the number of retweets.
    */
-  lazy val trending: TweetList = ???
+  lazy val trending: TweetList = googleTweets.union(appleTweets).descendingByRetweet
 }
 
 object Main extends App {
-  println("\nGoogle tweets")
-  GoogleVsApple.googleTweets foreach println
-  println("\nApple tweets")
-  GoogleVsApple.appleTweets foreach println
   // Print the trending tweets
-  //GoogleVsApple.trending foreach println
+  GoogleVsApple.trending foreach println
 }
