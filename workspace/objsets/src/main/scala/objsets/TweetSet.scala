@@ -60,7 +60,7 @@ abstract class TweetSet {
   def isEmpty: Boolean
 
   /**
-   * Returns the tweet from this set which has the largest retweet count.
+   * Returns the tweet from this set which has the greatest retweet count.
    *
    * Calling `mostRetweeted` on an empty set should throw an exception of
    * type `java.util.NoSuchElementException`.
