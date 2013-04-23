@@ -78,11 +78,17 @@ object Huffman {
    *   }
    */
   def times(chars: List[Char]): List[(Char, Int)] = {
-    val charFreqs = chars.map(x => (x, 1))
-    val charFreqs1 = charFreqs.map(x => x match {
-      case (c, n) => if (c == x._1) (c, n + 1) else (c, n)
+//    def acc(pair: (Char, Int), cfs: List[(Char, Int)]): List[(Char, Int)] = {
+//      if (cfs.isEmpty) pair :: Nil
+//      else 
+//    }
+    val charFreqs = chars.map(c => (c, 1))
+    val charFreqs1 = chars.map(c => {
+      charFreqs.map(x => x match {
+        case (c, n) => (c, n + 1)
+      })
     })
-    charFreqs
+    charFreqs1
   }
 
   /**
