@@ -9,7 +9,7 @@ object week4 {
 		else nth(n - 1, xs.tail)          //> nth: [T](n: Int, xs: greeter.List[T])T
 		
 	val list = new Cons(1, new Cons(2, new Cons(3, Nil)))
-                                                  //> list  : greeter.Cons[Int] = greeter.Cons@4ac9131c
+                                                  //> list  : greeter.Cons[Int] = greeter.Cons@165973ea
   nth(2, list)                                    //> res0: Int = 3
   nth(4, list)                                    //> java.lang.IndexOutOfBoundsException
                                                   //| 	at greeter.week4$$anonfun$main$1.nth$1(greeter.week4.scala:6)
