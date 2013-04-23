@@ -77,11 +77,12 @@ object Huffman {
    *       println("integer is  : "+ theInt)
    *   }
    */
-  def times(chars: List[Char]): List[(Char, Int)] = chars match {
-    case Nil => List()
-    case c :: cs => {
-      val pair: (Char, Int) = (c, 1)
-    }
+  def times(chars: List[Char]): List[(Char, Int)] = {
+    val charFreqs = chars.map(x => (x, 1))
+    val charFreqs1 = charFreqs.map(x => x match {
+      case (c, n) => if (c == x._1) (c, n + 1) else (c, n)
+    })
+    charFreqs
   }
 
   /**
@@ -214,4 +215,9 @@ object Huffman {
    * and then uses it to perform the actual encoding.
    */
   def quickEncode(tree: CodeTree)(text: List[Char]): List[Bit] = ???
+}
+
+object Main extends App {
+  val cfs = Huffman.times(List('a', 'b', 'a'))
+  cfs foreach(x => println("('" + x._1 + "', " + x._2 + ")"))
 }
