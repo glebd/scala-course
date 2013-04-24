@@ -74,78 +74,10 @@ object Huffman {
    *   }
    */
   def times(chars: List[Char]): List[(Char, Int)] = {
-    println("Current chars: " + chars)
-    def acc0(c: Char, cfs: List[(Char, Int)]): List[(Char, Int)] = {
-      println("Current char: " + c)
-      if (cfs.isEmpty) {
-        println("Empty cfs")
-        (c, 1) :: Nil
-      } else if (cfs.head._1 == c) {
-        println("Matched '" + c + "', count was " + cfs.head._2 + ", now " + (cfs.head._2 + 1))
-        (c, cfs.head._2 + 1) :: cfs.tail
-      } else {
-        println("Head: " + cfs.head._1)
-        acc(c, cfs.tail)
-      }
-    }
-    def acc(c: Char, cfs: List[(Char, Int)]): List[(Char, Int)] = {
-      println("acc: c = '" + c + "', cfs = " + dump(cfs))
-      if (cfs.isEmpty) {
-        println("acc: cfs is empty")
-        (c, 1) :: Nil
-      } else {
-        println("acc: cfs => List")
-        val h = cfs.head
-        val ch = h._1
-        val n = h._2
-        if (ch == c) {
-          println("acc: matched '" + c + "', count is now " + (n + 1))
-          (c, n + 1) :: cfs.tail
-        } else {
-          println("acc: unmatched '" + ch + "', count is " + n)
-          (ch, n) :: cfs.tail
-        }
-      }
-      /*
-      cfs match {
-        case Nil => {
-          println("acc: cfs => Nil")
-          (c, 1) :: Nil
-        }
-        case list => {
-          println("acc: cfs => List")
-          val h = list.head
-          val ch = h._1
-          val n = h._2
-          if (ch == c) {
-            println("acc: matched '" + c + "', count is now " + (n + 1))
-            (c, n + 1) :: list.tail
-          } else {
-            println("acc: unmatched '" + ch + "', count is " + n)
-            (ch, n) :: list.tail
-          }
-        }
-      }
-      */
-    }
-    def acc2(c: Char, cs: List[Char], cfs: List[(Char, Int)]): List[(Char, Int)] = {
-      println("acc2: c = '" + c + "', cs = '" + cs + "', cfs = " + dump(cfs))
-      if (cs.isEmpty) {
-        val ret = acc(c, cfs)
-        println("acc2: cs empty, returning: " + dump(ret))
-        ret
-      } else {
-        //val ret = acc2(cs.head, cs.tail, acc(c, cfs))
-        val ret = acc(c, acc2(cs.head, cs.tail, cfs))
-        println("acc2: cs = " + cs + ", returning: " + dump(ret))
-        ret
-      }
-    }
     def acc3(c: Char, cfs: List[(Char, Int)]): List[(Char, Int)] = {
       if (cfs.isEmpty) (c, 1) :: cfs
       else {
         val found = cfs.filter(x => x._1 == c)
-        println("found = " + found)
         if (found == Nil) (c, 1) :: cfs
         else {
           val without = cfs.filter(x => x._1 != c)
@@ -153,16 +85,10 @@ object Huffman {
         }
       }
     }
-    //val list = if (chars.isEmpty) Nil else acc2(chars.head, chars.tail, chars.map(c => (c, 1)))
-    //val list = if (chars.isEmpty) Nil else acc2(chars.head, chars.tail, Nil)
-    //val list = if (chars.isEmpty) Nil else acc2(chars.head, times(chars.tail))
-    //val list = if (chars.isEmpty) Nil else acc2(chars.head, chars.tail, chars.map(c => (c, 1)))
-    //list
     def rec(cs: List[Char], cfs: List[(Char, Int)]): List[(Char, Int)] = {
       if (cs.isEmpty) cfs
       else rec(cs.tail, acc3(cs.head, cfs))
     }
-    
     rec(chars, Nil)
   }
 
