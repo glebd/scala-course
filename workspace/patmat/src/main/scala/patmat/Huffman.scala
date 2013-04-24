@@ -217,6 +217,6 @@ object Huffman {
 }
 
 object Main extends App {
-  val cfs = Huffman.times(List('a', 'b', 'a', 'a', 'b', 'c'))
+  val cfs = Huffman.times(List('a', 'b', 'a', 'a', 'b', 'c', 'b', 'b', 'd'))
   Huffman.dump(cfs)
 }
