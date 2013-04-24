@@ -74,27 +74,20 @@ object Huffman {
    *   }
    */
   def times(chars: List[Char]): List[(Char, Int)] = {
-    def acc3(c: Char, cfs: List[(Char, Int)]): List[(Char, Int)] = {
+    def acc3(c: Char, cfs: List[(Char, Int)]): List[(Char, Int)] =
       if (cfs.isEmpty) (c, 1) :: cfs
       else {
         val found = cfs.filter(x => x._1 == c)
         if (found == Nil) (c, 1) :: cfs
-        else {
-          val without = cfs.filter(x => x._1 != c)
-          (c, found.head._2 + 1) :: without
-        }
+        else (c, found.head._2 + 1) :: cfs.filter(x => x._1 != c)
       }
-    }
-    def rec(cs: List[Char], cfs: List[(Char, Int)]): List[(Char, Int)] = {
+    def rec(cs: List[Char], cfs: List[(Char, Int)]): List[(Char, Int)] =
       if (cs.isEmpty) cfs
       else rec(cs.tail, acc3(cs.head, cfs))
-    }
     rec(chars, Nil)
   }
 
-  def dump(cfs: List[(Char, Int)]) = {
-    println(cfs.mkString(", "))
-  }
+  def dump(cfs: List[(Char, Int)]) = println(cfs.mkString(", "))
 
   /**
    * Returns a list of `Leaf` nodes for a given frequency table `freqs`.
