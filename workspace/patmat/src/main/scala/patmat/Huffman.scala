@@ -87,8 +87,6 @@ object Huffman {
     rec(chars, Nil)
   }
 
-  def dump(cfs: List[(Char, Int)]) = println(cfs.mkString(", "))
-
   /**
    * Returns a list of `Leaf` nodes for a given frequency table `freqs`.
    *
@@ -218,6 +216,13 @@ object Huffman {
 }
 
 object Main extends App {
+
+  def dump(cfs: List[(Char, Int)]) = println(cfs.mkString(", "))
+  
+  def dumpLeaves(leaves: List[Huffman.Leaf]) = println(leaves.mkString(", "))
+
   val cfs = Huffman.times(List('a', 'b', 'a', 'a', 'b', 'c', 'b', 'b', 'd'))
-  Huffman.dump(cfs)
+  dump(cfs)
+  val sorted = Huffman.makeOrderedLeafList(cfs)
+  dumpLeaves(sorted)
 }
