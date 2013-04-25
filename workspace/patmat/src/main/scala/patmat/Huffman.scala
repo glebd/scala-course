@@ -240,13 +240,13 @@ object Huffman {
    * sub-trees, think of how to build the code table for the entire tree.
    */
   def convert(tree: CodeTree): CodeTable = {
-    def loop(cur: CodeTree, table: CodeTable): CodeTable = {
+    def loop(cur: CodeTree, table: CodeTable, bits: List[Bit]): CodeTable = {
       cur match {
-        case l: Leaf => table
-        case f: Fork => mergeCodeTables(loop(f.left, table), loop(f.right, table))
+        case l: Leaf => (l.char, bits) :: table
+        case f: Fork => mergeCodeTables(loop(f.left, table, 0 :: bits), loop(f.right, table, 1 :: bits))
       }
     }
-    loop(tree, Nil)
+    loop(tree, Nil, Nil)
   }
 
   /**
@@ -254,7 +254,7 @@ object Huffman {
    * use it in the `convert` method above, this merge method might also do some transformations
    * on the two parameter code tables.
    */
-  def mergeCodeTables(a: CodeTable, b: CodeTable): CodeTable = ???
+  def mergeCodeTables(a: CodeTable, b: CodeTable): CodeTable = a ::: b
 
   /**
    * This function encodes `text` according to the code tree `tree`.
@@ -262,7 +262,14 @@ object Huffman {
    * To speed up the encoding process, it first converts the code tree to a code table
    * and then uses it to perform the actual encoding.
    */
-  def quickEncode(tree: CodeTree)(text: List[Char]): List[Bit] = ???
+  def quickEncode(tree: CodeTree)(text: List[Char]): List[Bit] = {
+    val codeTable = convert(tree)
+    def loop(text: List[Char], bits: List[Bit]): List[Bit] = {
+      if (text.isEmpty) bits
+      else codeBits(codeTable)(text.head) ::: loop(text.tail, bits)
+    }
+    loop(text, Nil)
+  }
 }
 
 object Main extends App {
