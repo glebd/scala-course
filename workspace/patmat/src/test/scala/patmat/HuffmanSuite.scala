@@ -12,6 +12,10 @@ class HuffmanSuite extends FunSuite {
   trait TestTrees {
     val t1 = Fork(Leaf('a', 2), Leaf('b', 3), List('a', 'b'), 5)
     val t2 = Fork(Fork(Leaf('a', 2), Leaf('b', 3), List('a', 'b'), 5), Leaf('d', 4), List('a', 'b', 'd'), 9)
+    val frenchFreq: List[(Char, Int)] = List(('e', 225947), ('s', 121895), ('a', 117110), ('i', 115465), ('t', 111103),
+      ('n', 108812), ('r', 100500), ('u', 96785), ('l', 83668), ('o', 82762), ('d', 56269), ('c', 50003), ('p', 46335),
+      ('m', 45521), ('v', 24975), ('q', 20889), ('f', 16351), ('b', 13822), ('g', 13288), ('h', 11298), ('j', 8351),
+      ('x', 5928), ('y', 4725), ('z', 2093), ('w', 1747), ('k', 745))
   }
 
   test("weight of a larger tree") {
@@ -79,6 +83,24 @@ class HuffmanSuite extends FunSuite {
     new TestTrees {
       val tree = createCodeTree("aabbb".toList)
       assert(tree === t1)
+    }
+  }
+
+  test("createCodeTree of a text") {
+    new TestTrees {
+      val tree = createCodeTree("aabbbdddd".toList)
+      println(t2)
+      println(tree)
+      assert(tree === t2)
+    }
+  }
+  
+  test("french code") {
+    new TestTrees {
+      val trees = makeOrderedLeafList(frenchFreq)
+      println("expected: " + convert(frenchCode))
+      println("  actual: " + convert(until(singleton, combine)(trees).head))
+      assert(convert(until(singleton, combine)(trees).head) == convert(frenchCode))
     }
   }
 }
