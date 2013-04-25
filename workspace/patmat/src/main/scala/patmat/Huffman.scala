@@ -135,7 +135,7 @@ object Huffman {
    * unchanged.
    */
   def combine(trees: List[CodeTree]): List[CodeTree] = trees match {
-    case l::r::t => (makeCodeTree(l, r) :: t) sortWith ((l, r) => weight(l) < weight(r))
+    case l::r::t => (makeCodeTree(l, r) :: t) sortWith((l, r) => weight(l) < weight(r))
     case h::t => trees
     case _ => trees
   }
@@ -159,7 +159,7 @@ object Huffman {
    */
   def until(condition: Boolean, f: List[CodeTree] => List[CodeTree])(trees: List[CodeTree]): List[CodeTree] =
     if (condition) f(trees)
-    else until(condition, f)(f(trees))
+    else until(!condition, f)(f(trees))
 
   /**
    * This function creates a code tree which is optimal to encode the text `chars`.
@@ -169,7 +169,7 @@ object Huffman {
    */
   def createCodeTree(chars: List[Char]): CodeTree = {
     val trees = makeOrderedLeafList(times(chars))
-    until(!singleton(trees), combine)(trees).head
+    until(singleton(trees), combine)(trees).head
   }
 
   // Part 3: Decoding
