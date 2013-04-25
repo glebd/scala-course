@@ -226,26 +226,9 @@ object Huffman {
    * into a sequence of bits.
    */
   def encode(tree: CodeTree)(text: List[Char]): List[Bit] = {
-    def traverse(cur: CodeTree, c: Char, acc: List[Bit]): List[Bit] = {
-      println("traverse: " + c + ", acc: " + acc + " cur =\n" + cur)
-      cur match {
-        case l: Leaf => {
-          println("Leaf: " + l)
-          if (c == l.char) {
-            println("Found: " + c + ", returning: " + acc)
-            acc
-          } else {
-            println("Not found: returning Nil")
-            Nil
-          }
-        }
-        case f: Fork => {
-          println("Fork:\n" + f)
-          val l = traverse(f.left, c, acc :+ 0)
-          val r = traverse(f.right, c, acc :+ 1)
-          l ::: r
-        }
-      }
+    def traverse(cur: CodeTree, c: Char, acc: List[Bit]): List[Bit] = cur match {
+      case l: Leaf => if (c == l.char) acc else Nil
+      case f: Fork => traverse(f.left, c, acc :+ 0) ::: traverse(f.right, c, acc :+ 1)
     }
     def enc(tree: CodeTree, text: List[Char], bits: List[Bit]): List[Bit] = {
       if (text.isEmpty) bits
@@ -307,20 +290,4 @@ object Huffman {
     }
     loop(text, Nil)
   }
-}
-
-object Main extends App {
-
-  def dump(cfs: List[(Char, Int)]) = println(cfs.mkString(", "))
-
-  def dumpLeaves(leaves: List[Huffman.Leaf]) = println(leaves.mkString(", "))
-
-  //val cfs = Huffman.times(List('a', 'b', 'a', 'a', 'b', 'c', 'b', 'b', 'd'))
-  //dump(cfs)
-  //val sorted = Huffman.makeOrderedLeafList(cfs)
-  //dumpLeaves(sorted)
-
-  //println(Huffman.decodedSecret)
-  val t2 = Huffman.Fork(Huffman.Fork(Huffman.Leaf('a', 2), Huffman.Leaf('b', 3), List('a', 'b'), 5), Huffman.Leaf('d', 4), List('a', 'b', 'd'), 9)
-  println("b => " + Huffman.quickEncode(t2)("b".toList))
 }
