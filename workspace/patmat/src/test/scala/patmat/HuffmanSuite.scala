@@ -74,4 +74,19 @@ class HuffmanSuite extends FunSuite {
       assert(decode(t2, quickEncode(t2)("abd".toList)) === "abd".toList)
     }
   }
+
+  test("createCodeTree of a very short text") {
+    new TestTrees {
+      val tree = createCodeTree("aabbb".toList)
+      assert(tree === t1)
+    }
+  }
+
+  test("createCodeTree of a text") {
+    new TestTrees {
+      val tree = createCodeTree("aabbbdddd".toList)
+      println(tree)
+      assert(tree === t2)
+    }
+  }
 }

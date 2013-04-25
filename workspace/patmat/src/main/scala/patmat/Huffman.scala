@@ -134,10 +134,11 @@ object Huffman {
    * If `trees` is a list of less than two elements, that list should be returned
    * unchanged.
    */
-  def combine(trees: List[CodeTree]): List[CodeTree] =
-    if (trees == Nil) trees
-    else if (trees.size < 2) trees
-    else makeCodeTree(trees.head, trees.tail.head) :: trees.tail.tail sortWith ((l, r) => weight(l) < weight(r))
+  def combine(trees: List[CodeTree]): List[CodeTree] = trees match {
+    case l::r::t => (makeCodeTree(l, r) :: t) sortWith ((l, r) => weight(l) < weight(r))
+    case h::t => trees
+    case _ => trees
+  }
 
   /**
    * This function will be called in the following way:
@@ -157,7 +158,7 @@ object Huffman {
    *  - try to find sensible parameter names for `xxx`, `yyy` and `zzz`.
    */
   def until(condition: Boolean, f: List[CodeTree] => List[CodeTree])(trees: List[CodeTree]): List[CodeTree] =
-    if (condition) trees
+    if (condition) f(trees)
     else until(condition, f)(f(trees))
 
   /**
@@ -168,7 +169,7 @@ object Huffman {
    */
   def createCodeTree(chars: List[Char]): CodeTree = {
     val trees = makeOrderedLeafList(times(chars))
-    until(singleton(trees), combine)(trees).head
+    until(!singleton(trees), combine)(trees).head
   }
 
   // Part 3: Decoding
