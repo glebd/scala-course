@@ -227,7 +227,7 @@ object Huffman {
    */
   def encode(tree: CodeTree)(text: List[Char]): List[Bit] = {
     def traverse(cur: CodeTree, c: Char, acc: List[Bit]): List[Bit] = {
-      println("traverse: c = " + c + ", acc: " + acc + " cur =\n" + cur)
+      println("traverse: " + c + ", acc: " + acc + " cur =\n" + cur)
       cur match {
         case l: Leaf => {
           println("Leaf: " + l)
@@ -241,13 +241,15 @@ object Huffman {
         }
         case f: Fork => {
           println("Fork:\n" + f)
-          traverse(f.left, c, 0 :: acc) ::: traverse(f.right, c, 1 :: acc)
+          val l = traverse(f.left, c, acc :+ 0)
+          val r = traverse(f.right, c, acc :+ 1)
+          l ::: r
         }
       }
     }
     def enc(tree: CodeTree, text: List[Char], bits: List[Bit]): List[Bit] = {
       if (text.isEmpty) bits
-      else traverse(tree, text.head, enc(tree, text.tail, bits))
+      else traverse(tree, text.head, bits) ::: enc(tree, text.tail, bits)
     }
     enc(tree, text, Nil)
   }
