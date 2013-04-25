@@ -95,7 +95,7 @@ object Huffman {
    * of a leaf is the frequency of the character.
    */
   def makeOrderedLeafList(freqs: List[(Char, Int)]): List[Leaf] =
-    freqs sortWith((smaller, bigger) => smaller._2 < bigger._2) map(x => Leaf(x._1, x._2))
+    freqs sortWith ((smaller, bigger) => smaller._2 < bigger._2) map (x => Leaf(x._1, x._2))
 
   /**
    * Checks whether the list `trees` contains only one single code tree.
@@ -117,7 +117,7 @@ object Huffman {
   def combine(trees: List[CodeTree]): List[CodeTree] =
     if (trees == Nil) trees
     else if (trees.size < 2) trees
-    else makeCodeTree(trees.head, trees.tail.head) :: trees.tail.tail sortWith((l, r) => weight(l) < weight(r))
+    else makeCodeTree(trees.head, trees.tail.head) :: trees.tail.tail sortWith ((l, r) => weight(l) < weight(r))
 
   /**
    * This function will be called in the following way:
@@ -172,10 +172,10 @@ object Huffman {
     def dec(tree: CodeTree, bits: List[Bit], cs: List[Char]): List[Char] = {
       if (bits.isEmpty) cs
       else {
-    	val t = acc(tree, bits)
-    	val c = t._1
-    	val bitsTail = t._2
-    	c :: dec(tree, bitsTail, cs)
+        val t = acc(tree, bits)
+        val c = t._1
+        val bitsTail = t._2
+        c :: dec(tree, bitsTail, cs)
       }
     }
     dec(tree, bits, Nil)
@@ -239,7 +239,15 @@ object Huffman {
    * a valid code tree that can be represented as a code table. Using the code tables of the
    * sub-trees, think of how to build the code table for the entire tree.
    */
-  def convert(tree: CodeTree): CodeTable = ???
+  def convert(tree: CodeTree): CodeTable = {
+    def loop(cur: CodeTree, table: CodeTable): CodeTable = {
+      cur match {
+        case l: Leaf => table
+        case f: Fork => mergeCodeTables(loop(f.left, table), loop(f.right, table))
+      }
+    }
+    loop(tree, Nil)
+  }
 
   /**
    * This function takes two code tables and merges them into one. Depending on how you
@@ -260,13 +268,13 @@ object Huffman {
 object Main extends App {
 
   def dump(cfs: List[(Char, Int)]) = println(cfs.mkString(", "))
-  
+
   def dumpLeaves(leaves: List[Huffman.Leaf]) = println(leaves.mkString(", "))
 
   val cfs = Huffman.times(List('a', 'b', 'a', 'a', 'b', 'c', 'b', 'b', 'd'))
   dump(cfs)
   val sorted = Huffman.makeOrderedLeafList(cfs)
   dumpLeaves(sorted)
-  
+
   println(Huffman.decodedSecret)
 }
