@@ -175,9 +175,10 @@ object Huffman {
     	val t = acc(tree, bits)
     	val c = t._1
     	val bitsTail = t._2
-    	c :: dec(tree, bitsTail)
+    	c :: dec(tree, bitsTail, cs)
       }
     }
+    dec(tree, bits, Nil)
   }
 
   /**
