@@ -18,7 +18,27 @@ object Huffman {
    * present in the leaves below it. The weight of a `Fork` node is the sum of the weights of these
    * leaves.
    */
-  abstract class CodeTree
+  abstract class CodeTree {
+    override def toString = {
+      case class TreeLines(node: String, leftLines: List[String], rightLines: List[String]) {
+        def prepend(nodePrefix: String, leftPrefix: String, rightPrefix: String) =
+          rightLines.map(rightPrefix + _) :::
+            (nodePrefix + node) ::
+            leftLines.map(leftPrefix + _)
+      }
+
+      def getLines(tree: CodeTree): TreeLines =
+        tree match {
+          case l: Leaf => TreeLines("(" + l.char + ":" + l.weight + ")", Nil, Nil)
+          case f: Fork => TreeLines(
+            "(" + f.chars.sorted.mkString + ":" + f.weight + ")",
+            getLines(f.left).prepend("  \\-", "   ", "  |"),
+            getLines(f.right).prepend("  /-", "  |", "   "))
+        }
+
+      getLines(this).prepend("", "", "").mkString("\n")
+    }
+  }
   case class Fork(left: CodeTree, right: CodeTree, chars: List[Char], weight: Int) extends CodeTree
   case class Leaf(char: Char, weight: Int) extends CodeTree
 
