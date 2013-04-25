@@ -97,10 +97,7 @@ class HuffmanSuite extends FunSuite {
   
   test("french code") {
     new TestTrees {
-      val trees = makeOrderedLeafList(frenchFreq)
-      println("expected: " + convert(frenchCode))
-      println("  actual: " + convert(until(singleton, combine)(trees).head))
-      assert(convert(until(singleton, combine)(trees).head) == convert(frenchCode))
+      assert(convert(until(singleton, combine)(makeOrderedLeafList(frenchFreq)).head) == convert(frenchCode))
     }
   }
 }
