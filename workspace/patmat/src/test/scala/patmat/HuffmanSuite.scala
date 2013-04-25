@@ -100,4 +100,11 @@ class HuffmanSuite extends FunSuite {
       assert(convert(until(singleton, combine)(makeOrderedLeafList(frenchFreq)).head) == convert(frenchCode))
     }
   }
+  
+  test("assignment instructions tree") {
+    val cs = "aaaaaaaabbbcdefgh".toList
+    val tree = createCodeTree(cs)
+    //println(tree)
+    assert(encode(tree)(cs).size === 41)
+  }
 }
