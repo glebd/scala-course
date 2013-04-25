@@ -104,7 +104,11 @@ class HuffmanSuite extends FunSuite {
   test("assignment instructions tree") {
     val cs = "aaaaaaaabbbcdefgh".toList
     val tree = createCodeTree(cs)
-    //println(tree)
     assert(encode(tree)(cs).size === 41)
+  }
+  
+  test("assignment instructions tree minimal test") {
+    val tree = createCodeTree("aaaaaaaabbbcdefgh".toList)
+    assert(encode(tree)("abcdefgh".toList).size === 28)
   }
 }
