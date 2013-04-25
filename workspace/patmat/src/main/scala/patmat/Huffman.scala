@@ -280,7 +280,7 @@ object Huffman {
     def loop(cur: CodeTree, table: CodeTable, bits: List[Bit]): CodeTable = {
       cur match {
         case l: Leaf => (l.char, bits) :: table
-        case f: Fork => mergeCodeTables(loop(f.left, table, 0 :: bits), loop(f.right, table, 1 :: bits))
+        case f: Fork => mergeCodeTables(loop(f.left, table, bits :+ 0), loop(f.right, table, bits :+ 1))
       }
     }
     loop(tree, Nil, Nil)
@@ -322,5 +322,5 @@ object Main extends App {
 
   //println(Huffman.decodedSecret)
   val t2 = Huffman.Fork(Huffman.Fork(Huffman.Leaf('a', 2), Huffman.Leaf('b', 3), List('a', 'b'), 5), Huffman.Leaf('d', 4), List('a', 'b', 'd'), 9)
-  println("b => " + Huffman.encode(t2)("b".toList))
+  println("b => " + Huffman.quickEncode(t2)("b".toList))
 }
