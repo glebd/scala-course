@@ -81,12 +81,4 @@ class HuffmanSuite extends FunSuite {
       assert(tree === t1)
     }
   }
-
-  test("createCodeTree of a text") {
-    new TestTrees {
-      val tree = createCodeTree("aabbbdddd".toList)
-      println(tree)
-      assert(tree === t2)
-    }
-  }
 }
