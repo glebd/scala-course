@@ -28,7 +28,7 @@ object Anagrams {
    */
   val dictionary: List[Word] = loadDictionary
 
-  /** Converts the word into its character occurence list.
+  /** Converts the word into its character occurrence list.
    *  
    *  Note: the uppercase and lowercase version of the character are treated as the
    *  same character, and are represented as a lowercase character in the occurrence list.
