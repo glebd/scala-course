@@ -18,23 +18,28 @@ object anagrams {
     (for {
       n <- 1 to cf._2
     } yield (cf._1, n)).toList
-  }
+  }                                               //> expand: (cf: (Char, Int))week6.anagrams.Occurrences
   
-  expand(('a', 1))
-  expand(('a', 2))
+  expand(('a', 1))                                //> res0: week6.anagrams.Occurrences = List((a,1))
+  expand(('a', 2))                                //> res1: week6.anagrams.Occurrences = List((a,1), (a,2))
 
   def subsets(occurrences: Occurrences): Occurrences = {
     occurrences match {
       case Nil => Nil
       case List((c, n)) => List((c, n))
-      case head :: tail =>
-        
+      case list =>
+        val len = occurrences.length
+        (for {
+          l <- 1 to len
+          s <- subsets(list.drop(l))
+        } yield s).toList
     }
-  }
+  }                                               //> subsets: (occurrences: week6.anagrams.Occurrences)week6.anagrams.Occurrence
+                                                  //| s
 
-  val abba = List(('a', 2), ('b', 2))
+  val abba = List(('a', 2), ('b', 2))             //> abba  : List[(Char, Int)] = List((a,2), (b,2))
   
-  subsets(abba)
+  subsets(abba)                                   //> res2: week6.anagrams.Occurrences = List((b,2))
 
   /*
   def combinations(occurrences: Occurrences): List[Occurrences] = {
@@ -55,7 +60,11 @@ object anagrams {
     List(('a', 2), ('b', 1)),
     List(('b', 2)),
     List(('a', 1), ('b', 2)),
-    List(('a', 2), ('b', 2)))
+    List(('a', 2), ('b', 2)))                     //> abbacomb  : List[List[(Char, Int)]] = List(List(), List((a,1)), List((a,2))
+                                                  //| , List((b,1)), List((a,1), (b,1)), List((a,2), (b,1)), List((b,2)), List((a
+                                                  //| ,1), (b,2)), List((a,2), (b,2)))
   //combinations(abba).toSet
-  abbacomb.toSet
+  abbacomb.toSet                                  //> res3: scala.collection.immutable.Set[List[(Char, Int)]] = Set(List((a,1)), 
+                                                  //| List((b,1)), List((b,2)), List((a,1), (b,1)), List(), List((a,2), (b,1)), L
+                                                  //| ist((a,2)), List((a,1), (b,2)), List((a,2), (b,2)))
 }
