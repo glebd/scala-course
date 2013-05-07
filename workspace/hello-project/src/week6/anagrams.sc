@@ -115,22 +115,30 @@ object anagrams {
   allPossibleOccurrences(List(('a', 2)))          //> res9: week6.anagrams.Occurrences = List((a,1), (a,2))
 
   def combinations(occurrences: Occurrences): List[Occurrences] = {
-    def expand(cf: (Char, Int)): Occurrences = {
-      (for {
-        n <- 1 to cf._2
-      } yield (cf._1, n)).toList
-    }
-    def expandOccurrences(occ: Occurrences): List[Occurrences] = {
-      occurrences match {
-        case Nil => List(List())
-        case head :: tail =>
-          for {
-            x <- expand(head)
-            y <- combinations(tail)
-          } yield x :: y
+    def combinations1(occurrences: Occurrences): List[Occurrences] = {
+      def expand(cf: (Char, Int)): Occurrences = {
+        val seq = for {
+          n <- 1 to cf._2
+        } yield (cf._1, n)
+        seq.toList
       }
+      def expandOccurrences(occ: Occurrences): List[Occurrences] = {
+        occ match {
+          case Nil => List(List())
+          case head :: tail =>
+            for {
+              x <- expand(head)
+              y <- combinations1(tail)
+            } yield x :: y
+        }
+      }
+      expandOccurrences(occurrences)
     }
-    expandOccurrences(occurrences)
+    val seqs = for {
+      n <- 1 to occurrences.length
+    } yield occurrences.combinations(n)
+    seqs foreach(x => x foreach println)
+    combinations1(occurrences)
   }                                               //> combinations: (occurrences: week6.anagrams.Occurrences)List[week6.anagrams.
                                                   //| Occurrences]
 
@@ -146,7 +154,10 @@ object anagrams {
     List(('a', 2), ('b', 2)))                     //> abbacomb  : List[List[(Char, Int)]] = List(List(), List((a,1)), List((a,2))
                                                   //| , List((b,1)), List((a,1), (b,1)), List((a,2), (b,1)), List((b,2)), List((a
                                                   //| ,1), (b,2)), List((a,2), (b,2)))
-  combinations(abba) mkString ("\n")              //> res10: String = List((a,1), (b,1))
+  combinations(abba) mkString ("\n")              //> List((a,2))
+                                                  //| List((b,2))
+                                                  //| List((a,2), (b,2))
+                                                  //| res10: String = List((a,1), (b,1))
                                                   //| List((a,1), (b,2))
                                                   //| List((a,2), (b,1))
                                                   //| List((a,2), (b,2))
