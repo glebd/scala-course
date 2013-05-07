@@ -136,9 +136,10 @@ object anagrams {
     }
     val seqs = for {
       n <- 1 to occurrences.length
-    } yield occurrences.combinations(n)
-    seqs foreach(x => x foreach println)
-    combinations1(occurrences)
+      x <- occurrences.combinations(n)
+      y <- combinations1(x)
+    } yield y
+    List(List()) ++ seqs
   }                                               //> combinations: (occurrences: week6.anagrams.Occurrences)List[week6.anagrams.
                                                   //| Occurrences]
 
@@ -154,10 +155,12 @@ object anagrams {
     List(('a', 2), ('b', 2)))                     //> abbacomb  : List[List[(Char, Int)]] = List(List(), List((a,1)), List((a,2))
                                                   //| , List((b,1)), List((a,1), (b,1)), List((a,2), (b,1)), List((b,2)), List((a
                                                   //| ,1), (b,2)), List((a,2), (b,2)))
-  combinations(abba) mkString ("\n")              //> List((a,2))
+  combinations(abba) mkString ("\n")              //> res10: String = List()
+                                                  //| List((a,1))
+                                                  //| List((a,2))
+                                                  //| List((b,1))
                                                   //| List((b,2))
-                                                  //| List((a,2), (b,2))
-                                                  //| res10: String = List((a,1), (b,1))
+                                                  //| List((a,1), (b,1))
                                                   //| List((a,1), (b,2))
                                                   //| List((a,2), (b,1))
                                                   //| List((a,2), (b,2))
