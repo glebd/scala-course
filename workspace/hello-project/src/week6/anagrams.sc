@@ -19,10 +19,10 @@ object anagrams {
       n <- 1 to cf._2
     } yield (cf._1, n)).toList
   }                                               //> expand: (cf: (Char, Int))week6.anagrams.Occurrences
-  
+
   expand(('a', 1))                                //> res0: week6.anagrams.Occurrences = List((a,1))
   expand(('a', 2))                                //> res1: week6.anagrams.Occurrences = List((a,1), (a,2))
-  
+
   def expandMany(occurrences: Occurrences): Occurrences = {
     occurrences match {
       case Nil => Nil
@@ -34,7 +34,7 @@ object anagrams {
   expandMany(List(('a', 1)))                      //> res2: week6.anagrams.Occurrences = List((a,1))
   expandMany(List(('a', 2)))                      //> res3: week6.anagrams.Occurrences = List((a,1), (a,2))
   expandMany(List(('a', 3)))                      //> res4: week6.anagrams.Occurrences = List((a,1), (a,2), (a,3))
-  
+
   def interleave(occ: Occurrences, o: (Char, Int)): List[Occurrences] = {
     occ match {
       case Nil => List(List(o))
@@ -64,34 +64,34 @@ object anagrams {
                                                   //| rences]
 
   val abba = List(('a', 2), ('b', 2))             //> abba  : List[(Char, Int)] = List((a,2), (b,2))
-  
+
   val s = subsets(abba)                           //> s  : List[week6.anagrams.Occurrences] = List(List(), List((a,2)), List((b,2
                                                   //| )), List((a,2), (b,2)))
-  
+
   expandMany(abba)                                //> res5: week6.anagrams.Occurrences = List((a,1), (a,2), (b,1), (b,2))
   val expanded = for {
     s <- subsets(abba)
   } yield expandMany(s)                           //> expanded  : List[week6.anagrams.Occurrences] = List(List(), List((a,1), (a,
                                                   //| 2)), List((b,1), (b,2)), List((a,1), (a,2), (b,1), (b,2)))
 
-permutations(abba)                                //> res6: List[week6.anagrams.Occurrences] = List(List((a,2), (b,2)), List((b,2
+  permutations(abba)                              //> res6: List[week6.anagrams.Occurrences] = List(List((a,2), (b,2)), List((b,2
                                                   //| ), (a,2)))
 
-expanded.combinations(2) mkString("\n")           //> res7: String = List(List(), List((a,1), (a,2)))
+  expanded.combinations(2) mkString ("\n")        //> res7: String = List(List(), List((a,1), (a,2)))
                                                   //| List(List(), List((b,1), (b,2)))
                                                   //| List(List(), List((a,1), (a,2), (b,1), (b,2)))
                                                   //| List(List((a,1), (a,2)), List((b,1), (b,2)))
                                                   //| List(List((a,1), (a,2)), List((a,1), (a,2), (b,1), (b,2)))
                                                   //| List(List((b,1), (b,2)), List((a,1), (a,2), (b,1), (b,2)))
 
-def permute2(occ: Occurrences): List[Occurrences] =
-  occ match {
-    case Nil => Nil
-    case h :: t => permutations(expand(h)) ::: permute2(t)
-  }                                               //> permute2: (occ: week6.anagrams.Occurrences)List[week6.anagrams.Occurrences]
+  def permute2(occ: Occurrences): List[Occurrences] =
+    occ match {
+      case Nil => Nil
+      case h :: t => permutations(expand(h)) ::: permute2(t)
+    }                                             //> permute2: (occ: week6.anagrams.Occurrences)List[week6.anagrams.Occurrences]
                                                   //| 
-  
-permute2(abba)                                    //> res8: List[week6.anagrams.Occurrences] = List(List((a,1), (a,2)), List((a,2
+
+  permute2(abba)                                  //> res8: List[week6.anagrams.Occurrences] = List(List((a,1), (a,2)), List((a,2
                                                   //| ), (a,1)), List((b,1), (b,2)), List((b,2), (b,1)))
 
   /*
@@ -107,22 +107,30 @@ permute2(abba)                                    //> res8: List[week6.anagrams.
   }
   */
 
-	def allPossibleOccurrences(occ: Occurrences): Occurrences = {
-	  expandMany(occ)
-	}                                         //> allPossibleOccurrences: (occ: week6.anagrams.Occurrences)week6.anagrams.Occ
+  def allPossibleOccurrences(occ: Occurrences): Occurrences = {
+    expandMany(occ)
+  }                                               //> allPossibleOccurrences: (occ: week6.anagrams.Occurrences)week6.anagrams.Occ
                                                   //| urrences
-	
-	allPossibleOccurrences(List(('a', 2)))    //> res9: week6.anagrams.Occurrences = List((a,1), (a,2))
-  
+
+  allPossibleOccurrences(List(('a', 2)))          //> res9: week6.anagrams.Occurrences = List((a,1), (a,2))
+
   def combinations(occurrences: Occurrences): List[Occurrences] = {
-    occurrences match {
-      case Nil => List(List())
-      case head :: tail =>
-        for {
-          x <- expand(head)
-          y <- combinations(tail)
-        } yield x :: y
+    def expand(cf: (Char, Int)): Occurrences = {
+      (for {
+        n <- 1 to cf._2
+      } yield (cf._1, n)).toList
     }
+    def expandOccurrences(occ: Occurrences): List[Occurrences] = {
+      occurrences match {
+        case Nil => List(List())
+        case head :: tail =>
+          for {
+            x <- expand(head)
+            y <- combinations(tail)
+          } yield x :: y
+      }
+    }
+    expandOccurrences(occurrences)
   }                                               //> combinations: (occurrences: week6.anagrams.Occurrences)List[week6.anagrams.
                                                   //| Occurrences]
 
@@ -138,8 +146,10 @@ permute2(abba)                                    //> res8: List[week6.anagrams.
     List(('a', 2), ('b', 2)))                     //> abbacomb  : List[List[(Char, Int)]] = List(List(), List((a,1)), List((a,2))
                                                   //| , List((b,1)), List((a,1), (b,1)), List((a,2), (b,1)), List((b,2)), List((a
                                                   //| ,1), (b,2)), List((a,2), (b,2)))
-  combinations(abba)                              //> res10: List[week6.anagrams.Occurrences] = List(List((a,1), (b,1)), List((a,
-                                                  //| 1), (b,2)), List((a,2), (b,1)), List((a,2), (b,2)))
+  combinations(abba) mkString ("\n")              //> res10: String = List((a,1), (b,1))
+                                                  //| List((a,1), (b,2))
+                                                  //| List((a,2), (b,1))
+                                                  //| List((a,2), (b,2))
   abbacomb.toSet                                  //> res11: scala.collection.immutable.Set[List[(Char, Int)]] = Set(List((a,1)),
                                                   //|  List((b,1)), List((b,2)), List((a,1), (b,1)), List(), List((a,2), (b,1)), 
                                                   //| List((a,2)), List((a,1), (b,2)), List((a,2), (b,2)))
