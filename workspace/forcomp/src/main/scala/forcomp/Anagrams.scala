@@ -10,7 +10,8 @@ object Anagrams {
   /** A sentence is a `List` of words. */
   type Sentence = List[Word]
 
-  /** `Occurrences` is a `List` of pairs of characters and positive integers saying
+  /**
+   * `Occurrences` is a `List` of pairs of characters and positive integers saying
    *  how often the character appears.
    *  This list is sorted alphabetically w.r.t. to the character in each pair.
    *  All characters in the occurrence list are lowercase.
@@ -23,12 +24,14 @@ object Anagrams {
    */
   type Occurrences = List[(Char, Int)]
 
-  /** The dictionary is simply a sequence of words.
+  /**
+   * The dictionary is simply a sequence of words.
    *  It is predefined and obtained as a sequence using the utility method `loadDictionary`.
    */
   val dictionary: List[Word] = loadDictionary
 
-  /** Converts the word into its character occurrence list.
+  /**
+   * Converts the word into its character occurrence list.
    *
    *  Note: the uppercase and lowercase version of the character are treated as the
    *  same character, and are represented as a lowercase character in the occurrence list.
@@ -38,7 +41,8 @@ object Anagrams {
   /** Converts a sentence into its character occurrence list. */
   def sentenceOccurrences(s: Sentence): Occurrences = wordOccurrences(s.mkString)
 
-  /** The `dictionaryByOccurrences` is a `Map` from different occurrences to a sequence of all
+  /**
+   * The `dictionaryByOccurrences` is a `Map` from different occurrences to a sequence of all
    *  the words that have that occurrence count.
    *  This map serves as an easy way to obtain all the anagrams of a word given its occurrence list.
    *
@@ -62,7 +66,8 @@ object Anagrams {
   /** Returns all the anagrams of a given word. */
   def wordAnagrams(word: Word): List[Word] = dictionaryByOccurrences getOrElse (wordOccurrences(word), List())
 
-  /** Returns the list of all subsets of the occurrence list.
+  /**
+   * Returns the list of all subsets of the occurrence list.
    *  This includes the occurrence itself, i.e. `List(('k', 1), ('o', 1))`
    *  is a subset of `List(('k', 1), ('o', 1))`.
    *  It also include the empty subset `List()`.
@@ -112,7 +117,8 @@ object Anagrams {
     combinations1(occurrences)
   }
 
-  /** Subtracts occurrence list `y` from occurrence list `x`.
+  /**
+   * Subtracts occurrence list `y` from occurrence list `x`.
    *
    *  The precondition is that the occurrence list `y` is a subset of
    *  the occurrence list `x` -- any character appearing in `y` must
@@ -125,7 +131,8 @@ object Anagrams {
   def subtract(x: Occurrences, y: Occurrences): Occurrences =
     y.toMap.foldLeft(x.toMap)((a: Map[Char, Int], kv: (Char, Int)) => a.updated(kv._1, a(kv._1) - kv._2)).filter(x => x._2 > 0).toList.sorted
 
-  /** Returns a list of all anagram sentences of the given sentence.
+  /**
+   * Returns a list of all anagram sentences of the given sentence.
    *
    *  An anagram of a sentence is formed by taking the occurrences of all the characters of
    *  all the words in the sentence, and producing all possible combinations of words with those characters,
