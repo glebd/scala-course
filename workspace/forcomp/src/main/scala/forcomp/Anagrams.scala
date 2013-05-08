@@ -179,8 +179,10 @@ object Anagrams {
       else
         for {
           x <- combinations(occ)
-          y <- dictionaryByOccurrences.getOrElse(x, Nil)
-          z <- subAnagrams(subtract(occ, x))
+          diff = subtract(occ, x)
+          s = dictionaryByOccurrences(x)
+          y <- dictionaryByOccurrences(x) if (s != Nil)
+          z <- subAnagrams(diff)
         } yield y :: z
     }
     subAnagrams(sentenceOccurrences(sentence))
