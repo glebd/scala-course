@@ -175,6 +175,6 @@ object Anagrams {
           z <- subAnagrams(subtract(occ, x))
         } yield y :: z
     }
-    subAnagrams(sentenceOccurrences(sentence)).distinct
+    subAnagrams(sentenceOccurrences(sentence))
   }
 }
