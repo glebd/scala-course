@@ -167,16 +167,14 @@ object Anagrams {
    */
   def sentenceAnagrams(sentence: Sentence): List[Sentence] = {
     def subAnagrams(occ: Occurrences): List[Sentence] = {
-      occ match {
-        case List() => List(Nil)
-        case occ1 =>
+      if (occ.isEmpty) List(Nil)
+      else
           for {
-            x <- combinations(occ1)
+          x <- combinations(occ)
             y <- dictionaryByOccurrences.getOrElse(x, Nil)
             z <- subAnagrams(subtract(x, wordOccurrences(y)))
           } yield y :: z
       }
-    }
     subAnagrams(sentenceOccurrences(sentence))
   }
 }
