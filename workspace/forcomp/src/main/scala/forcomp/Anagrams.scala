@@ -123,7 +123,7 @@ object Anagrams {
    *  and has no zero-entries.
    */
   def subtract(x: Occurrences, y: Occurrences): Occurrences =
-    y.toMap.foldLeft(x.toMap)((a: Map[Char, Int], kv: (Char, Int)) => a.updated(kv._1, kv._2 - a(kv._1))).filter(x => x._2 > 0).toList
+    y.toMap.foldLeft(x.toMap)((a: Map[Char, Int], kv: (Char, Int)) => a.updated(kv._1, a(kv._1) - kv._2)).filter(x => x._2 > 0).toList.sorted
 
   /** Returns a list of all anagram sentences of the given sentence.
    *  
