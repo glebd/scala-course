@@ -169,12 +169,12 @@ object Anagrams {
     def subAnagrams(occ: Occurrences): List[Sentence] = {
       if (occ.isEmpty) List(Nil)
       else
-          for {
+        for {
           x <- combinations(occ)
-            y <- dictionaryByOccurrences.getOrElse(x, Nil)
-            z <- subAnagrams(subtract(x, wordOccurrences(y)))
-          } yield y :: z
-      }
-    subAnagrams(sentenceOccurrences(sentence))
+          y <- dictionaryByOccurrences.getOrElse(x, Nil)
+          z <- subAnagrams(subtract(occ, x))
+        } yield y :: z
+    }
+    subAnagrams(sentenceOccurrences(sentence)).distinct
   }
 }
