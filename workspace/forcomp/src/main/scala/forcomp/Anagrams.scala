@@ -115,7 +115,7 @@ object Anagrams {
       } yield y
       List(List()) ++ seqs
     }
-    combinations1(occurrences)
+    combinations1(occurrences).distinct
   }
 
   /**
@@ -175,21 +175,12 @@ object Anagrams {
    */
   def sentenceAnagrams(sentence: Sentence): List[Sentence] = {
     def subAnagrams(occ: Occurrences): List[Sentence] = {
-      if (occ.isEmpty) List(Nil)
+      if (occ.isEmpty) List(List())
       else
         for {
           combination <- combinations(occ)
-          //_ = println("occ = " + occ)
-          //_ = println("combination = " + combination)
-          //words = dictionaryByOccurrences(combination)
-          //_ = println("words = " + words)
-          //_ = println("diff = " + diff)
-          //_ = println("wdiff = " + wdiff + ", is Nil = " + (wdiff == Nil))
-          word <- dictionaryByOccurrences(combination)// if words != Nil
-          //_ = println("word = " + word)
-          diff = subtract(occ, combination)
-          //wdiff = dictionaryByOccurrences(diff)
-          anagrams <- subAnagrams(diff)// if (wdiff != Nil)
+          word <- dictionaryByOccurrences(combination)
+          anagrams <- subAnagrams(subtract(occ, combination))
         } yield word :: anagrams
     }
     subAnagrams(sentenceOccurrences(sentence))
