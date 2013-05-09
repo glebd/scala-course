@@ -178,12 +178,19 @@ object Anagrams {
       if (occ.isEmpty) List(Nil)
       else
         for {
-          x <- combinations(occ)
-          diff = subtract(occ, x)
-          s = dictionaryByOccurrences(x)
-          y <- dictionaryByOccurrences(x) if (s != Nil)
-          z <- subAnagrams(diff)
-        } yield y :: z
+          combination <- combinations(occ)
+          //_ = println("occ = " + occ)
+          //_ = println("combination = " + combination)
+          //words = dictionaryByOccurrences(combination)
+          //_ = println("words = " + words)
+          //_ = println("diff = " + diff)
+          //_ = println("wdiff = " + wdiff + ", is Nil = " + (wdiff == Nil))
+          word <- dictionaryByOccurrences(combination)// if words != Nil
+          //_ = println("word = " + word)
+          diff = subtract(occ, combination)
+          //wdiff = dictionaryByOccurrences(diff)
+          anagrams <- subAnagrams(diff)// if (wdiff != Nil)
+        } yield word :: anagrams
     }
     subAnagrams(sentenceOccurrences(sentence))
   }
