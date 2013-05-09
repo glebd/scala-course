@@ -62,7 +62,7 @@ object Anagrams {
       .map(w => (w, wordOccurrences(w)))
       .groupBy(x => x._2)
       .map(x => (x._1, x._2.map(y => y._1)))
-      .withDefaultValue(Nil)
+      .withDefault(_ => Nil)
 
   /** Returns all the anagrams of a given word. */
   def wordAnagrams(word: Word): List[Word] = dictionaryByOccurrences getOrElse (wordOccurrences(word), List())
