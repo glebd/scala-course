@@ -38,8 +38,7 @@ trait Solver extends GameDef {
    * positions that have already been explored. We will use it to
    * make sure that we don't explore circular paths.
    */
-  def newNeighborsOnly(neighbors: Stream[(Block, List[Move])],
-                       explored: Set[Block]): Stream[(Block, List[Move])] = ???
+  def newNeighborsOnly(neighbors: Stream[(Block, List[Move])], explored: Set[Block]): Stream[(Block, List[Move])] = ???
 
   /**
    * The function `from` returns the stream of all possible paths
