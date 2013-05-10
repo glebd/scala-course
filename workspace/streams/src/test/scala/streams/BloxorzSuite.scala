@@ -39,6 +39,22 @@ class BloxorzSuite extends FunSuite {
 
     val optsolution = List(Right, Right, Down, Right, Right, Right, Down)
   }
+  
+  test("terrain negative") {
+    new Level1 {
+      assert(!terrain(Pos(-1,0)), "-1,0")
+      assert(!terrain(Pos(0,-1)), "0,-1")
+      assert(!terrain(Pos(-1,-1)), "-1,-1")
+    }
+  }
+  
+  test("terrain out of bounds") {
+    new Level1 {
+      assert(!terrain(Pos(10,0)), "11,0")
+      assert(!terrain(Pos(0,6)), "0,6")
+      assert(!terrain(Pos(12,8)), "12,8")
+    }
+  }
 
   test("terrain function level 1") {
     new Level1 {
