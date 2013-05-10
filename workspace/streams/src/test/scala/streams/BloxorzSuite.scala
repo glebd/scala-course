@@ -17,7 +17,8 @@ class BloxorzSuite extends FunSuite {
      * is a valid solution, i.e. leads to the goal.
      */
     def solve(ls: List[Move]): Block =
-      ls.foldLeft(startBlock) { case (block, move) => move match {
+      ls.foldLeft(startBlock) {
+        case (block, move) => move match {
         case Left => block.left
         case Right => block.right
         case Up => block.up
