@@ -41,6 +41,22 @@ class BloxorzSuite extends FunSuite {
     val optsolution = List(Right, Right, Down, Right, Right, Right, Down)
   }
 
+  trait Level6 extends SolutionChecker {
+    val level =
+      """-----oooooo
+      |-----o--ooo
+      |-----o--ooooo
+      |Sooooo-----oooo
+      |----ooo----ooTo
+      |----ooo-----ooo
+      |------o--oo
+      |------ooooo
+      |------ooooo
+      |-------ooo""".stripMargin
+
+    val optsolution = ???
+  }
+
   test("terrain negative") {
     new Level1 {
       assert(!terrain(Pos(-1, 0)), "-1,0")
