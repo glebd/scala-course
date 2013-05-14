@@ -67,15 +67,16 @@ class BloxorzSuite extends FunSuite {
 
   test("terrain out of bounds") {
     new Level1 {
-      assert(!terrain(Pos(10, 0)), "11,0")
-      assert(!terrain(Pos(0, 6)), "0,6")
-      assert(!terrain(Pos(12, 8)), "12,8")
+      assert(!terrain(Pos(0, 10)), "0,10")
+      assert(!terrain(Pos(5, 0)), "5,0")
+      assert(!terrain(Pos(8, 12)), "8,12")
     }
   }
 
   test("terrain function level 1") {
     new Level1 {
       assert(terrain(Pos(0, 0)), "0,0")
+      assert(terrain(Pos(4, 9)), "4,9")
       assert(!terrain(Pos(4, 11)), "4,11")
     }
   }
