@@ -24,7 +24,7 @@ object Bloxorz extends App {
    */
   abstract class Level extends Solver with StringParserTerrain
   
-  object Level0 extends Level {
+  object Level0 extends SolutionVisualizer {
     val level =
       """------
         |--ST--
@@ -36,9 +36,12 @@ object Bloxorz extends App {
   /*
    * List(Down, Right, Up)
    */
-  println("\nLevel 0")
-  //println(Level0.pathsFromStart)
-  println(Level0.solution)
+  //println("\nLevel 0")
+  //println(Level0.pathsFromStart.toList)
+  //println(Level0.pathsToGoal.toList)
+  //println(Level0.startBlock.legalNeighbors)
+  //println(Level0.solution)
+  Level0.displaySolution()
 
   /**
    * Level 1 of the official Bloxorz game
