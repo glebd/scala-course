@@ -75,14 +75,14 @@ trait Solver extends GameDef {
 //        if !(explored contains b)
 //        next <- neighborsWithHistory(b, m)
 //      } yield next
-      println("\ninitial = " + initial)
-      println("explored = " + explored)
+      //println("\ninitial = " + initial)
+      //println("explored = " + explored)
       val neighbors = neighborsWithHistory(initial.head._1, initial.head._2)
-      println("neighbors = " + neighbors)
+      //println("neighbors = " + neighbors.toList)
       val neighborsNew = newNeighborsOnly(neighbors, explored)
-      println("neighborsNew = " + neighborsNew)
+      //println("neighborsNew = " + neighborsNew)
       val expl = explored ++ (neighborsNew map(_._1))
-      println("expl = " + expl)
+      //println("expl = " + expl)
       initial.head #:: from(initial.tail ++ neighborsNew, expl)
     }
 
