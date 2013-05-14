@@ -27,6 +27,16 @@ class BloxorzSuite extends FunSuite {
       }
   }
 
+  trait Level0 extends SolutionChecker {
+    val level =
+      """------
+        |--ST--
+        |--oo--
+        |--oo--
+        |------""".stripMargin
+    val optsolution = List(Down, Right, Up)
+  }
+
   trait Level1 extends SolutionChecker {
     /* terrain for level 1*/
 
@@ -57,7 +67,15 @@ class BloxorzSuite extends FunSuite {
     val optsolution = ???
   }
 
-  test("terrain negative") {
+  test("terrain 0 negative") {
+    new Level0 {
+      assert(!terrain(Pos(-1, 0)), "-1,0")
+      assert(!terrain(Pos(0, -1)), "0,-1")
+      assert(!terrain(Pos(-1, -1)), "-1,-1")
+    }
+  }
+
+  test("terrain 1 negative") {
     new Level1 {
       assert(!terrain(Pos(-1, 0)), "-1,0")
       assert(!terrain(Pos(0, -1)), "0,-1")
@@ -65,7 +83,15 @@ class BloxorzSuite extends FunSuite {
     }
   }
 
-  test("terrain out of bounds") {
+  test("terrain 0 out of bounds") {
+    new Level0 {
+      assert(!terrain(Pos(1, 1)), "1,1")
+      assert(!terrain(Pos(1, 2)), "1,2")
+      assert(!terrain(Pos(4, 4)), "4,4")
+    }
+  }
+
+  test("terrain 1 out of bounds") {
     new Level1 {
       assert(!terrain(Pos(0, 10)), "0,10")
       assert(!terrain(Pos(5, 0)), "5,0")
@@ -105,9 +131,21 @@ class BloxorzSuite extends FunSuite {
     }
   }
   
+  test("optimal solution for level 0") {
+    new Level0 {
+      assert(solve(solution) == Block(goal, goal))
+    }
+  }
+  
   test("optimal solution for level 1") {
     new Level1 {
       assert(solve(solution) == Block(goal, goal))
+    }
+  }
+
+  test("optimal solution length for level 0") {
+    new Level0 {
+      assert(solution.length == optsolution.length)
     }
   }
 
