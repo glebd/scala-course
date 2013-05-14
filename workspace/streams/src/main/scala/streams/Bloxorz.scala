@@ -30,12 +30,14 @@ object Bloxorz extends App {
         |------""".stripMargin
   }
 
+  println("\nLevel 0")
+  println(Level0.solution)
   Level0.displaySolution()
 
   /**
    * Level 1 of the official Bloxorz game
    */
-  object Level1 extends Level {
+  object Level1 extends SolutionVisualizer {
     val level =
       """ooo-------
         |oSoooo----
@@ -47,4 +49,5 @@ object Bloxorz extends App {
 
   println("\nLevel 1")
   println(Level1.solution)
+  Level1.displaySolution()
 }
