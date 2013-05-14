@@ -70,11 +70,6 @@ trait Solver extends GameDef {
   def from(initial: Stream[(Block, List[Move])], explored: Set[Block]): Stream[(Block, List[Move])] =
     if (initial.isEmpty) Stream.empty
     else {
-//      val more = for {
-//        (b, m) <- initial
-//        if !(explored contains b)
-//        next <- neighborsWithHistory(b, m)
-//      } yield next
       //println("\ninitial = " + initial)
       //println("explored = " + explored)
       val neighbors = neighborsWithHistory(initial.head._1, initial.head._2)
