@@ -97,5 +97,5 @@ trait Solver extends GameDef {
    */
   lazy val solution: List[Move] =
     if (pathsToGoal.isEmpty) Nil
-    else pathsToGoal.map(x => x._2).head
+    else pathsToGoal.map(x => x._2).head.reverse
 }
