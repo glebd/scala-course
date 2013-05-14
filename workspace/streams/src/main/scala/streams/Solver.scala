@@ -70,14 +70,9 @@ trait Solver extends GameDef {
   def from(initial: Stream[(Block, List[Move])], explored: Set[Block]): Stream[(Block, List[Move])] =
     if (initial.isEmpty) Stream.empty
     else {
-      //println("\ninitial = " + initial)
-      //println("explored = " + explored)
       val neighbors = neighborsWithHistory(initial.head._1, initial.head._2)
-      //println("neighbors = " + neighbors.toList)
       val neighborsNew = newNeighborsOnly(neighbors, explored)
-      //println("neighborsNew = " + neighborsNew)
       val expl = explored ++ (neighborsNew map(_._1))
-      //println("expl = " + expl)
       initial.head #:: from(initial.tail ++ neighborsNew, expl)
     }
 

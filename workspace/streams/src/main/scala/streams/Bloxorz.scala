@@ -13,9 +13,6 @@ object Bloxorz extends App {
     val startPos = Pos(1,3)
     val goal = Pos(5,8)
   }
-  /*
-   * List(Down, Right, Right, Down, Right, Down, Right)
-   */
   println("Infinite Level")
   println(InfiniteLevel.solution)
 
@@ -33,14 +30,6 @@ object Bloxorz extends App {
         |------""".stripMargin
   }
 
-  /*
-   * List(Down, Right, Up)
-   */
-  //println("\nLevel 0")
-  //println(Level0.pathsFromStart.toList)
-  //println(Level0.pathsToGoal.toList)
-  //println(Level0.startBlock.legalNeighbors)
-  //println(Level0.solution)
   Level0.displaySolution()
 
   /**
@@ -56,11 +45,6 @@ object Bloxorz extends App {
         |------ooo-""".stripMargin
   }
 
-  /*
-   * List(Down, Right, Right, Right, Down, Right, Right)
-   */
   println("\nLevel 1")
-  //println(Level1.neighborsWithHistory(Level1.startBlock, List()).toList)
-  //println(Level1.pathsFromStart.toList)
   println(Level1.solution)
 }
