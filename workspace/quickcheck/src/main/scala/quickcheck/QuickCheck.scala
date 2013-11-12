@@ -56,7 +56,7 @@ abstract class QuickCheckHeap extends Properties("Heap") with IntHeap {
       else findMin(ts) :: remMin(deleteMin(ts), as)
     }
     val xs = remMin(h, Nil)
-    xs == xs.reverse.sorted
+    xs == xs.sorted
   }
 
   // Take two arbitrary heaps, meld together. Then remove min from 1 and insert into 2, meld the results. Compare two melds by comparing sequences of ranks.
