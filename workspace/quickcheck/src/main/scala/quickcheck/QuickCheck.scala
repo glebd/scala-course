@@ -58,16 +58,16 @@ abstract class QuickCheckHeap extends Properties("Heap") with IntHeap {
     val xs = remMin(h, Nil)
     xs == xs.sorted
   }
-
+  
   // Take two arbitrary heaps, meld together. Then remove min from 1 and insert into 2, meld the results. Compare two melds by comparing sequences of ranks.
   property("meldMinMove") = forAll { (h1: H, h2: H) =>
     def remMin(ts: H, as: List[Int]): List[Int] = {
       if (isEmpty(ts)) as
       else findMin(ts) :: remMin(deleteMin(ts), as)
     }
-	val meld1 = meld(h1, h2)
-	val min1 = findMin(h1)
-	val meld2 = meld(deleteMin(h1), insert(min1, h2))
+    val meld1 = meld(h1, h2)
+    val min1 = findMin(h1)
+    val meld2 = meld(deleteMin(h1), insert(min1, h2))
     val xs1 = remMin(meld1, Nil)
     val xs2 = remMin(meld2, Nil)
     xs1 == xs2
