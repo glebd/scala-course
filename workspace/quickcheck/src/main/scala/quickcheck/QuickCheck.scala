@@ -48,4 +48,14 @@ abstract class QuickCheckHeap extends Properties("Heap") with IntHeap {
     val minMeld = findMin(m)
     minMeld == min1 || minMeld == min2
   }
+  
+  // Given any heap, you should get a sorted sequence of elements when continually finding and deleting minima. (Hint: recursion and helper functions are your friends.)
+  property("remMin") = forAll { h: H =>
+    def remMin(ts: H, as: List[Int]): List[Int] = {
+      if (isEmpty(ts)) as
+      else findMin(ts) :: remMin(deleteMin(ts), as)
+    }
+    val xs = remMin(h, Nil)
+    xs == xs.reverse.sorted
+  }
 }
