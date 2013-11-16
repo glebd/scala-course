@@ -56,7 +56,6 @@ class CircuitSuite extends CircuitSimulator with FunSuite {
     in1.setSignal(true)
     run
     assert(out.getSignal === true, "or 4")
-    
   }
   
   test("orGate2 example") {
@@ -80,7 +79,6 @@ class CircuitSuite extends CircuitSimulator with FunSuite {
     in1.setSignal(true)
     run
     assert(out.getSignal === true, "or 4")
-    
   }
 
 }
