@@ -76,8 +76,8 @@ abstract class CircuitSimulator extends Simulator {
     inverter(notOut, output)
   }
 
-  def demux(in: Wire, c: List[Wire], out: List[Wire]) {
-    ???
+  def demux0(input: Wire, out: List[Wire]) {
+    andGate(input, input, out.head)
   }
 
 }
