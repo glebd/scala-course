@@ -4,10 +4,10 @@ object test {
   println("Welcome to the Scala worksheet")       //> Welcome to the Scala worksheet
   object sim extends Circuits with Parameters
   import sim._
-  val in1, in2, sum, carry = new Wire             //> in1  : week2.test.sim.Wire = week2.Gates$Wire@4a3f02bd
-                                                  //| in2  : week2.test.sim.Wire = week2.Gates$Wire@6eccec5f
-                                                  //| sum  : week2.test.sim.Wire = week2.Gates$Wire@4fb289cd
-                                                  //| carry  : week2.test.sim.Wire = week2.Gates$Wire@52751a9b
+  val in1, in2, sum, carry = new Wire             //> in1  : week2.test.sim.Wire = week2.Gates$Wire@76f8968f
+                                                  //| in2  : week2.test.sim.Wire = week2.Gates$Wire@3a64c34e
+                                                  //| sum  : week2.test.sim.Wire = week2.Gates$Wire@2d5253d5
+                                                  //| carry  : week2.test.sim.Wire = week2.Gates$Wire@77fddc31
 
   halfAdder(in1, in2, sum, carry)
   probe("sum", sum)                               //> sum 0 new-value = false
