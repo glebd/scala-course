@@ -97,9 +97,45 @@ object Circuit extends CircuitSimulator {
   //
   // to complete with orGateExample and demuxExample...
   //
+  
+  def orGateExample {
+    val in1, in2, out = new Wire
+    orGate(in1, in2, out)
+    probe("in1", in1)
+    probe("in2", in2)
+    probe("out", out)
+    in1.setSignal(false)
+    in2.setSignal(false)
+    run
+
+    in1.setSignal(true)
+    run
+
+    in2.setSignal(true)
+    run
+  }
+  
+  def orGate2Example {
+    val in1, in2, out = new Wire
+    orGate2(in1, in2, out)
+    probe("in1", in1)
+    probe("in2", in2)
+    probe("out", out)
+    in1.setSignal(false)
+    in2.setSignal(false)
+    run
+
+    in1.setSignal(true)
+    run
+
+    in2.setSignal(true)
+    run
+  }
 }
 
 object CircuitMain extends App {
   // You can write tests either here, or better in the test class CircuitSuite.
   Circuit.andGateExample
+  Circuit.orGateExample
+  Circuit.orGate2Example
 }
