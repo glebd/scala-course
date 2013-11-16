@@ -80,6 +80,13 @@ abstract class CircuitSimulator extends Simulator {
     andGate(input, input, out.head)
   }
 
+  def demux1(input: Wire, control: Wire, output: List[Wire]) {
+    val notControl = new Wire
+    inverter(control, notControl)
+    andGate(input, notControl, output(1))
+    andGate(input, control, output(0))
+  }
+
 }
 
 object Circuit extends CircuitSimulator {
