@@ -29,7 +29,7 @@ class Simulator {
   }
 
   def run {
-    println("*** New propagation ***")
+//    println("*** New propagation ***")
     while (!agenda.isEmpty) { next }
   }
 }
