@@ -185,6 +185,15 @@ class CircuitSuite extends CircuitSimulator with FunSuite {
     assert(o2.getSignal == false, "demux test 2>4: input=1, c0=0, c1=0 => o2=0")
     assert(o3.getSignal == false, "demux test 2>4: input=1, c0=0, c1=0 => o3=0")
     
+    c0.setSignal(true)
+    run
+
+    assert(o0.getSignal == false, "demux test 2>4: input=1, c0=1, c1=0 => o0=0")
+    assert(o1.getSignal == true, "demux test 2>4: input=1, c0=1, c1=0 => o1=1")
+    assert(o2.getSignal == false, "demux test 2>4: input=1, c0=1, c1=0 => o2=0")
+    assert(o3.getSignal == false, "demux test 2>4: input=1, c0=1, c1=0 => o3=0")
+
+    c0.setSignal(false)
     c1.setSignal(true)
     run
     
@@ -193,7 +202,7 @@ class CircuitSuite extends CircuitSimulator with FunSuite {
     assert(o2.getSignal == true, "demux test 2>4: input=1, c0=0, c1=1 => o2=1")
     assert(o3.getSignal == false, "demux test 2>4: input=1, c0=0, c1=1 => o3=0")
     
-    in.setSignal(true)
+    in.setSignal(false)
     run
     
     assert(o0.getSignal == false, "demux test 2>4: input=0, c0=0, c1=1 => o0=0")
