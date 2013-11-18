@@ -81,6 +81,14 @@ class EpidemySuite extends FunSuite {
 
     assert(es.agenda.head.time == dieTime, "You should set a 'die' event (decides with a probability 25% whether the person dies) after 14 days")
     while (es.agenda.head.time == dieTime) es.next
+    
+    // check immunity
+    while (es.agenda.head.time < immuneTime) es.next
+    es.next
+    while (es.agenda.head.time < healTime) {
+      assert(infectedPerson.sick == false, "Should not be sick after immune")
+      es.next
+    }
   }
 
   test("transmissibility rate") {
