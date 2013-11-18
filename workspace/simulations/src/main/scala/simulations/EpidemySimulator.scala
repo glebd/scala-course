@@ -39,7 +39,7 @@ class EpidemySimulator extends Simulator {
     if ((id + 1) % 100 == 0)
       becomeInfected
     
-    afterDelay(1)(mode)
+    afterDelay(0)(mode)
     
     def mode() {
       getInfectedMaybe()
