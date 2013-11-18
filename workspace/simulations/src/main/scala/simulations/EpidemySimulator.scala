@@ -19,6 +19,9 @@ class EpidemySimulator extends Simulator {
     val mortality = 0.25
     val transmissibility = 0.4
     val daysBeforeMove = 5
+    
+    val airTraffic = false
+    val airTrafficProbability = 0.01
   }
 
   import SimConfig._
@@ -74,24 +77,29 @@ class EpidemySimulator extends Simulator {
       if (c == roomColumns-1) 0
       else c+1
     }
-    
+
     def move {
       if (dead) return
-      
-      // determine available rooms
-      val topRoom = List(prevRow(row), col)
-      val rightRoom = List(row, nextCol(col))
-      val bottomRoom = List(nextRow(row), col)
-      val leftRoom = List(row, prevCol(col))
-      
-      val rooms = List(topRoom, rightRoom, bottomRoom, leftRoom)
-      val safeRooms = rooms.filter(roomAppearsSafe)
-      if (safeRooms != Nil) {
-        val roomIndex = randomBelow(safeRooms.length)
-        val room = safeRooms(roomIndex)
-        moveTo(room(0), room(1))
+
+      if (airTraffic && (randomBelow(100) <= airTrafficProbability*100)) {
+        // random room
+        moveTo(randomBelow(roomRows), randomBelow(roomColumns))
+      } else {
+        // determine available rooms
+        val topRoom = List(prevRow(row), col)
+        val rightRoom = List(row, nextCol(col))
+        val bottomRoom = List(nextRow(row), col)
+        val leftRoom = List(row, prevCol(col))
+
+        val rooms = List(topRoom, rightRoom, bottomRoom, leftRoom)
+        val safeRooms = rooms.filter(roomAppearsSafe)
+        if (safeRooms != Nil) {
+          val roomIndex = randomBelow(safeRooms.length)
+          val room = safeRooms(roomIndex)
+          moveTo(room(0), room(1))
+        }
       }
-      
+
       mode
     }
     
