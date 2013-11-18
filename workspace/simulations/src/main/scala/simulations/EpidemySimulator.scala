@@ -121,25 +121,21 @@ class EpidemySimulator extends Simulator {
     }
     
     def becomeSick() {
-      if (!infected) return
       sick = true
       afterDelay(death-incubation)(dieMaybe)
     }
     
     def dieMaybe() {
-      if (!sick) return
       if (randomBelow(100) <= mortality*100) dead = true
       else afterDelay(immunity-death)(becomeImmune)
     }
     
     def becomeImmune() {
-      if (!sick) return
       immune = true
       afterDelay(convalescence-immunity)(becomeHealthy)
     }
     
     def becomeHealthy() {
-      if (sick) return
       sick = false
       immune = false
       infected = false
