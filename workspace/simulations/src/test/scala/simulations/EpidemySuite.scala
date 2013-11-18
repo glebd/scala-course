@@ -83,8 +83,7 @@ class EpidemySuite extends FunSuite {
     while (es.agenda.head.time == dieTime) es.next
     
     // check immunity
-    while (es.agenda.head.time < immuneTime) es.next
-    es.next
+    while (es.agenda.head.time <= immuneTime) es.next
     while (es.agenda.head.time < healTime) {
       assert(infectedPerson.sick == false, "Should not be sick after immune")
       es.next
