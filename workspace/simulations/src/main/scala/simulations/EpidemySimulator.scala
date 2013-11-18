@@ -127,7 +127,11 @@ class EpidemySimulator extends Simulator {
     }
     
     def dieMaybe() {
-      if (randomBelow(100) <= mortality*100) dead = true
+      if (randomBelow(100) <= mortality*100) {
+        dead = true
+        sick = false
+        immune = false
+      }
       else afterDelay(immunity-death)(becomeImmune)
     }
     
