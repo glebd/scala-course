@@ -89,6 +89,7 @@ class EpidemySimulator extends Simulator {
       if (safeRooms != Nil) {
         val roomIndex = randomBelow(safeRooms.length)
         val room = safeRooms(roomIndex)
+//        println("Moving to room (" + room(0) + "," + room(1) + ")")
         moveTo(room(0), room(1))
       }
       
