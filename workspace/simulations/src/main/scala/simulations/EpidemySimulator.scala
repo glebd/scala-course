@@ -92,7 +92,7 @@ class EpidemySimulator extends Simulator {
         moveTo(room(0), room(1))
       }
       
-      afterDelay(0)(mode)
+      mode
     }
     
     def moveTo(newrow: Int, newcol: Int) {
