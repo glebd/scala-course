@@ -103,14 +103,14 @@ class EpidemySimulator extends Simulator {
     def roomAppearsSafe(coords: List[Int]): Boolean = {
       val row = coords(0)
       val col = coords(1)
-      val unsafe = persons.exists(p => {p.sick || p.dead})
+      val unsafe = persons.exists(p => {p.row == row && p.col == col && (p.sick || p.dead)})
       return !unsafe
     }
     
     def roomIsSafe(coords: List[Int]): Boolean = {
       val row = coords(0)
       val col = coords(1)
-      val unsafe = persons.exists(p => {p.infected || p.sick || p.dead})
+      val unsafe = persons.exists(p => {p.row == row && p.col == col && (p.infected || p.sick || p.dead)})
       return !unsafe
     }
     
