@@ -171,6 +171,7 @@ class EpidemySimulator extends Simulator {
         dead = true
         sick = false
         immune = false
+        infected = false
       }
       else afterDelay(immunity-death)(becomeImmune)
     }
