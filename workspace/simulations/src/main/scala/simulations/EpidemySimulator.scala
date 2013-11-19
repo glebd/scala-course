@@ -179,6 +179,7 @@ class EpidemySimulator extends Simulator {
     def becomeImmune() {
       immune = true
       sick = false
+      infected = false
       afterDelay(convalescence-immunity)(becomeHealthy)
     }
     
