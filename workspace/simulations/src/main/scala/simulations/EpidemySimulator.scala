@@ -85,11 +85,24 @@ class EpidemySimulator extends Simulator {
         // random room
         moveTo(randomBelow(roomRows), randomBelow(roomColumns))
       } else {
+        println(s"\nThis room: ($row, $col)")
+        
         // determine available rooms
-        val topRoom = List(prevRow(row), col)
-        val rightRoom = List(row, nextCol(col))
-        val bottomRoom = List(nextRow(row), col)
-        val leftRoom = List(row, prevCol(col))
+        val pr = prevRow(row)
+        val topRoom = List(pr, col)
+        println(s"Top room: ($pr, $col)");
+        
+        val nc = nextCol(col)
+        val rightRoom = List(row, nc)
+        println(s"Right room: ($row, $nc)")
+        
+        val nr = nextRow(row)
+        val bottomRoom = List(nr, col)
+        println(s"Bottom room: ($nr, $col)")
+        
+        val pc = prevCol(col)
+        val leftRoom = List(row, pc)
+        println(s"Left room: ($row, $pc)")
 
         val rooms = List(topRoom, rightRoom, bottomRoom, leftRoom)
         val safeRooms = rooms.filter(roomAppearsSafe)
@@ -97,10 +110,30 @@ class EpidemySimulator extends Simulator {
           val roomIndex = randomBelow(safeRooms.length)
           val room = safeRooms(roomIndex)
           moveTo(room(0), room(1))
+          println(s"Moving to room (${room(0)},${room(1)})")
+        } else {
+          println("No safe rooms:")
+          println("  top     - " + (if (roomAppearsSafe(topRoom)) "safe" else dumpRoom(topRoom)))
+          println("  right   - " + (if (roomAppearsSafe(rightRoom)) "safe" else dumpRoom(topRoom)))
+          println("  bottom  - " + (if (roomAppearsSafe(bottomRoom)) "safe" else dumpRoom(topRoom)))
+          println("  left    - " + (if (roomAppearsSafe(leftRoom)) "safe" else dumpRoom(topRoom)))
+          println("Staying put")
         }
       }
 
       mode
+    }
+    
+    def dumpFlags(): String = {
+      "{ " + (if (infected) "inf " else "") + (if (sick) "sick " else "") + (if (immune) "imm " else "") + (if (dead) "dead " else "") + "}"
+    }
+    
+    def dumpRoom(coords: List[Int]): String = {
+      val s = new StringBuilder
+      persons
+        .filter(p => p.row == coords(0) && p.col == coords(1))
+        .foreach(p => s.append(p.dumpFlags()))
+      s.mkString
     }
     
     def moveTo(newrow: Int, newcol: Int) {
