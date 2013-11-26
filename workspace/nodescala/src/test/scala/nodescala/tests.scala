@@ -33,6 +33,15 @@ class NodeScalaSuite extends FunSuite {
       case t: TimeoutException => // ok!
     }
   }
+  
+  test("A Future should be delayed") {
+    @volatile var test = 0
+    val delayed = Future.delay(1 second)
+    delayed onComplete { case _ => test = 42 }
+    Await.ready(delayed, 3 seconds)
+    Thread.sleep(10)
+    assert(test === 42)
+  }
 
   test("CancellationTokenSource should allow stopping the computation") {
     val cts = CancellationTokenSource()

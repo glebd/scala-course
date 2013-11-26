@@ -51,7 +51,14 @@ package object nodescala {
 
     /** Returns a future with a unit value that is completed after time `t`.
      */
-    def delay(t: Duration): Future[Unit] = ???
+    def delay(t: Duration): Future[Unit] = {
+      val p = Promise[Unit]()
+      blocking {
+        Thread.sleep(t.toMillis)
+        p.complete(Try())
+      }
+      p.future
+    }
 
     /** Completes this future with user input.
      */
