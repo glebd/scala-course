@@ -65,6 +65,20 @@ class NodeScalaSuite extends FunSuite {
     }
   }
 
+  // https://class.coursera.org/reactive-001/forum/thread?thread_id=1177#post-4694
+  test("Future.any") {
+    val never = Future.never
+    val bad = Future { throw new Exception }
+    var sawExceptions = false
+    try {
+      Await.result(Future.any(List(never, bad)), 1 second)
+      sawExceptions = true
+    } catch {
+      case t: TimeoutException =>
+      case e: Exception => sawExceptions = true
+    }
+    assert(sawExceptions, "Exceptions not seen.")
+  }
 
   // https://class.coursera.org/reactive-001/forum/thread?thread_id=1150#post-4675
   test("all ok") {
@@ -75,6 +89,41 @@ class NodeScalaSuite extends FunSuite {
     val r = Await.result(all, 1 seconds)
     assert(r equals List(123, 456))
   }
+
+  test("any ok") {
+    val f1 = Future.always(123)
+    val f2 = Future.always(456)
+    val fs = List(f1, f2)
+    val any = Future.any(fs)
+    val r = Await.result(any, 1 seconds)
+    assert(r == 123 || r == 456)
+  }
+
+  // https://class.coursera.org/reactive-001/forum/thread?thread_id=1190#post-4742
+  test("any should complete with the value of first to complete") {
+    val p1 = Promise[Int]
+    val p2 = Promise[Int]
+
+    val all = Future.any(List(p1.future, p2.future))
+    p2.success(2)
+    p1.success(1)
+
+    assert(Await.result(all, 1 second) == 2)
+  }
+
+  test("any should complete with failure if first to complete fails") {
+    val p1 = Promise[Int]
+    val p2 = Promise[Int]
+
+    val all = Future.any(List(p1.future, p2.future))
+    p2.failure(new Throwable("Failure"))
+    p1.success(1)
+
+    assert(intercept[Throwable] {
+      Await.result(all, 1 second)
+    }.getMessage() == "Failure")
+  }
+
   test("CancellationTokenSource should allow stopping the computation") {
     val cts = CancellationTokenSource()
     val ct = cts.cancellationToken
