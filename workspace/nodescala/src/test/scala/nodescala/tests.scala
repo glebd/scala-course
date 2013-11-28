@@ -127,7 +127,7 @@ class NodeScalaSuite extends FunSuite {
   test("Test `now`") {
     // completed: `now` returns value
     assert(1 == Future.always(1).now)
-    
+
     // not completed: `now` throws NoSuchElementException
     try {
       Future.never.now
@@ -135,13 +135,64 @@ class NodeScalaSuite extends FunSuite {
     } catch {
       case t: NoSuchElementException => // OK!
     }
-    
+
     // completed with error: `now` throws the error
     val p = Promise[Int]
     p.failure(new Throwable("Failure"))
     assert(intercept[Throwable] {
       p.future.now
     }.getMessage() == "Failure")
+  }
+
+  test("`continue` should handle exception") {
+    val f = future(throw new Throwable("Error"))
+    val s = f.continue(_ => "Success")
+    assert(Await.result(s, 100 milliseconds) === "Success")
+  }
+
+  test("continueWith - cont should not be applied until after future completes") {
+    intercept[TimeoutException] {
+      val future = Future.delay(3 seconds) continueWith { _ => assert(false) }
+      Await.result(future, 1 second)
+    }
+  }
+
+  test("test continueWith should handle exception thrown beforehand") {
+    @volatile var test = "";
+    def sss = Future[String] { Thread.sleep(10); throw new Exception("first explosion") }
+    def ccont(fff: Future[String]): Int = fff.value match {
+      case Some(Success(se)) => -333;
+      case Some(Failure(e)) => { test = e.getMessage(); -666 }
+      case None => -999
+    }
+    val nnn: Future[Int] = sss.continueWith(ccont)
+    Await.ready(nnn, 1 seconds)
+    assert(test === "first explosion")
+  }
+
+  test("test continueWith should handle exception thrown by continuing function") {
+    @volatile var test = "";
+    def sss = Future[String] { Thread.sleep(100); throw new Exception("first explosion") }
+    def ccont(ttt: Future[String]): Int = ttt match {
+      case _ => throw new Exception("second explosion")
+    }
+    val nnn: Future[Int] = sss.continueWith(ccont)
+    nnn onComplete {
+      case Failure(e) => test = e.getMessage
+      case Success(t) => test = "nope"
+    }
+    Await.ready(nnn, 1 seconds)
+    Thread.sleep(10) // allow time for callback to be called
+    assert(test === "second explosion")
+  }
+
+  test("A Future should be continued 2") {
+    val result = Future[String] {
+      throw new IllegalStateException()
+    }.continueWith { f =>
+      "continued"
+    }
+    assert(Await.result(result, 1 second) == "continued")
   }
 
   test("CancellationTokenSource should allow stopping the computation") {
