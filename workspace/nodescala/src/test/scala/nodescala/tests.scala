@@ -124,6 +124,26 @@ class NodeScalaSuite extends FunSuite {
     }.getMessage() == "Failure")
   }
 
+  test("Test `now`") {
+    // completed: `now` returns value
+    assert(1 == Future.always(1).now)
+    
+    // not completed: `now` throws NoSuchElementException
+    try {
+      Future.never.now
+      assert(false)
+    } catch {
+      case t: NoSuchElementException => // OK!
+    }
+    
+    // completed with error: `now` throws the error
+    val p = Promise[Int]
+    p.failure(new Throwable("Failure"))
+    assert(intercept[Throwable] {
+      p.future.now
+    }.getMessage() == "Failure")
+  }
+
   test("CancellationTokenSource should allow stopping the computation") {
     val cts = CancellationTokenSource()
     val ct = cts.cancellationToken
