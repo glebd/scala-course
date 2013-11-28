@@ -65,6 +65,16 @@ class NodeScalaSuite extends FunSuite {
     }
   }
 
+
+  // https://class.coursera.org/reactive-001/forum/thread?thread_id=1150#post-4675
+  test("all ok") {
+    val f1 = Future.always(123)
+    val f2 = Future.always(456)
+    val fs = List(f1, f2)
+    val all = Future.all(fs)
+    val r = Await.result(all, 1 seconds)
+    assert(r equals List(123, 456))
+  }
   test("CancellationTokenSource should allow stopping the computation") {
     val cts = CancellationTokenSource()
     val ct = cts.cancellationToken
