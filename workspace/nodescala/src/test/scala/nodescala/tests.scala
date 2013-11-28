@@ -144,18 +144,11 @@ class NodeScalaSuite extends FunSuite {
     }.getMessage() == "Failure")
   }
 
-  test("`continue` should handle exception") {
-    val f = future(throw new Throwable("Error"))
-    val s = f.continue(_ => "Success")
-    assert(Await.result(s, 100 milliseconds) === "Success")
-  }
-
-  test("continueWith - cont should not be applied until after future completes") {
-    intercept[TimeoutException] {
-      val future = Future.delay(3 seconds) continueWith { _ => assert(false) }
-      Await.result(future, 1 second)
-    }
-  }
+//  test("`continue` should handle exception") {
+//    val f = future(throw new Throwable("Error"))
+//    val s = f.continue(_ => "Success")
+//    assert(Await.result(s, 100 milliseconds) === "Success")
+//  }
 
   test("test continueWith should handle exception thrown beforehand") {
     @volatile var test = "";
@@ -184,6 +177,15 @@ class NodeScalaSuite extends FunSuite {
     Await.ready(nnn, 1 seconds)
     Thread.sleep(10) // allow time for callback to be called
     assert(test === "second explosion")
+  }
+  
+  test("A future should be continued") {
+    val result = Future[Int] {
+      1
+    } continueWith {
+      f => 2
+    }
+    assert(Await.result(result, 1 second) === 2)
   }
 
   test("A Future should be continued 2") {

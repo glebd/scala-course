@@ -128,7 +128,18 @@ package object nodescala {
      *  The function `cont` is called only after the current future completes.
      *  The resulting future contains a value returned by `cont`.
      */
-    def continueWith[S](cont: Future[T] => S): Future[S] = ???
+    def continueWith[S](cont: Future[T] => S): Future[S] = {
+      val p = Promise[S]()
+      f onComplete {
+        case Failure(e) => try p success cont(f) catch {
+          case NonFatal(t) => p failure t
+        }
+        case Success(v) => try p success cont(f) catch {
+          case NonFatal(t) => p failure t
+        }
+      }
+      p.future
+    }
 
     /**
      * Continues the computation of this future by taking the result
