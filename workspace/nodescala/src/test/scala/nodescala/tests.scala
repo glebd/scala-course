@@ -220,10 +220,10 @@ class NodeScalaSuite extends FunSuite {
     val working = Future.run() { ct =>
       Future {
         while (ct.nonCancelled) {
-          println("working")
+//          println("working")
           Thread.sleep(100)
         }
-        println("done") // todo: this never gets printed. why? 
+//        println("done") 
         finished = true
       }
     }
@@ -244,10 +244,10 @@ class NodeScalaSuite extends FunSuite {
     val working = Future.run() { ct =>
       async {
         while (ct.nonCancelled) {
-          println("working")
+//          println("working")
           Thread.sleep(200)
         }
-        println("done")
+//        println("done")
         w { assert(true) }
         w.dismiss()
       }
@@ -268,10 +268,10 @@ class NodeScalaSuite extends FunSuite {
       ct =>
         async {
           while (ct.nonCancelled) {
-            println("working")
+//            println("working")
             Thread.sleep(200)
           }
-          println("done")
+//          println("done")
           p.success(true)
         }
     }
