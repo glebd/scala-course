@@ -178,7 +178,7 @@ class NodeScalaSuite extends FunSuite {
     Thread.sleep(10) // allow time for callback to be called
     assert(test === "second explosion")
   }
-  
+
   test("A future should be continued") {
     val result = Future[Int] {
       1
@@ -212,6 +212,75 @@ class NodeScalaSuite extends FunSuite {
 
     cts.unsubscribe()
     assert(Await.result(p.future, 1 second) == "done")
+  }
+
+  // https://class.coursera.org/reactive-001/forum/thread?thread_id=1282
+  test("run") {
+    var finished = false
+    val working = Future.run() { ct =>
+      Future {
+        while (ct.nonCancelled) {
+          println("working")
+          Thread.sleep(100)
+        }
+        println("done") // todo: this never gets printed. why? 
+        finished = true
+      }
+    }
+    Future.delay(1 seconds) onComplete {
+      case _ => working.unsubscribe()
+    }
+    Await.ready(Future.delay(2 seconds), Duration.Inf)
+    assert(finished) // todo: this fails. why?
+  }
+
+  // https://class.coursera.org/reactive-001/forum/thread?thread_id=1024#post-4202
+  test("test Future.run") {
+    import org.scalatest.concurrent.AsyncAssertions._
+    import org.scalatest.time._
+
+    val w = new Waiter
+
+    val working = Future.run() { ct =>
+      async {
+        while (ct.nonCancelled) {
+          println("working")
+          Thread.sleep(200)
+        }
+        println("done")
+        w { assert(true) }
+        w.dismiss()
+      }
+    }
+
+    Future.delay(1 seconds) onComplete {
+      case _ => working.unsubscribe()
+    }
+
+    w.await(Timeout(Span(2, Seconds)))
+  }
+
+  test("test Future.run with Promise") {
+
+    val p = Promise[Boolean]()
+
+    val working = Future.run() {
+      ct =>
+        async {
+          while (ct.nonCancelled) {
+            println("working")
+            Thread.sleep(200)
+          }
+          println("done")
+          p.success(true)
+        }
+    }
+
+    Future.delay(1 seconds) onComplete {
+      case _ => working.unsubscribe()
+    }
+
+    assert(Await.result(p.future, 2 second))
   }
 
   class DummyExchange(val request: Request) extends Exchange {
