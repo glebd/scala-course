@@ -144,11 +144,11 @@ class NodeScalaSuite extends FunSuite {
     }.getMessage() == "Failure")
   }
 
-//  test("`continue` should handle exception") {
-//    val f = future(throw new Throwable("Error"))
-//    val s = f.continue(_ => "Success")
-//    assert(Await.result(s, 100 milliseconds) === "Success")
-//  }
+  test("`continue` should handle exception") {
+    val f = future(throw new Throwable("Error"))
+    val s = f.continue(_ => "Success")
+    assert(Await.result(s, 100 milliseconds) === "Success")
+  }
 
   test("test continueWith should handle exception thrown beforehand") {
     @volatile var test = "";
