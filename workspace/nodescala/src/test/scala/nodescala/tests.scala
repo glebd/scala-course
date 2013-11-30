@@ -41,6 +41,32 @@ class NodeScalaSuite extends FunSuite {
     assert(test === 42)
   }
 
+  test("A Future should not complete after 1s when using a delay of 3s") {
+    try {
+      val f1 = Future.delay(3 seconds)
+      Await.result(f1, 1 second)
+      assert(false)
+    } catch {
+      case ex: TimeoutException => // OK!
+    }
+  }
+
+  test("A Future should complete after 5s when using a delay of 3s") {
+    try {
+      val f2 = Future.delay(3 seconds)
+      Await.ready(f2, 5 seconds)
+      // OK!
+    } catch {
+      case ex: TimeoutException => assert(false)
+    }
+  }
+  
+  test("delay() actually delays the right amount") {
+    val st = System.currentTimeMillis()
+    Await.ready(Future.delay(3 second), Duration.Inf)
+    assert(System.currentTimeMillis() - st >= Duration(3, SECONDS).toMillis)
+  }
+
   test("All Futures should complete") {
     val f1 = Future.always(1)
     val f2 = Future.always(2)
