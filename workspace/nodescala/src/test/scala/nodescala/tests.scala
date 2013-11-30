@@ -383,8 +383,21 @@ class NodeScalaSuite extends FunSuite {
     dummySubscription.unsubscribe()
   }
 
+  test("Server should cancel a infinite response") {
+    val random = new scala.util.Random()
+    val endlessReply = (_: Request) => random.alphanumeric.map(_.toString).iterator
+    val server = new DummyServer(8191)
+    val subscription = server.start("/testDir")(endlessReply)
+    Thread.sleep(500) // wait until server is accepting connections
+    val webpage: DummyExchange = server.emit("/testDir", Map())
+    Thread.sleep(10) // wait until something is written to exchange.
+    subscription.unsubscribe()
+    Await.ready(webpage.loaded.future, 1 second)
+
+    // listener must've been stopped as well,
+    // i.e. should refuse to create new context.
+    intercept[TestFailedException] {
+      server.listeners.head._2.createContext(_ => ())
+    }
+  }
 }
-
-
-
-

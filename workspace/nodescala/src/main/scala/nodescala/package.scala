@@ -86,7 +86,9 @@ package object nodescala {
      * Completes this future with user input.
      */
     def userInput(message: String): Future[String] = Future {
-      readLine(message)
+      blocking {
+        readLine(message)
+      }
     }
 
     /**
@@ -95,9 +97,7 @@ package object nodescala {
     def run()(f: CancellationToken => Future[Unit]): Subscription = {
       val cts = CancellationTokenSource()
       val ct = cts.cancellationToken
-      async {
-        f(ct)
-      }
+      f(ct)
       cts
     }
 
