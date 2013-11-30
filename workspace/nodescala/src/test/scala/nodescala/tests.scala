@@ -123,6 +123,14 @@ class NodeScalaSuite extends FunSuite {
       Await.result(all, 1 second)
     }.getMessage() == "Failure")
   }
+  
+  test("A Future should be completed with all the results") {
+    val is = (1 to 10).toList 
+    val ifs = is map { Future always _ }
+    val fis = Future all ifs
+    val is2 = Await.result(fis, 1 second)
+    assert(is == is2)
+  }
 
   test("Test `now`") {
     // completed: `now` returns value
