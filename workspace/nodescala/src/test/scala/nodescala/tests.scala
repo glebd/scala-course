@@ -404,7 +404,7 @@ class NodeScalaSuite extends FunSuite {
 
     // listener must've been stopped as well,
     // i.e. should refuse to create new context.
-    intercept[TestFailedException] {
+    intercept[org.scalatest.exceptions.TestFailedException] {
       server.listeners.head._2.createContext(_ => ())
     }
   }
