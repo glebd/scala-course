@@ -2,6 +2,7 @@ package nodescala
 
 import com.sun.net.httpserver._
 import scala.concurrent._
+import scala.util.Try
 import scala.concurrent.duration._
 import ExecutionContext.Implicits.global
 import scala.async.Async.{async, await}
@@ -52,11 +53,8 @@ trait NodeScala {
     val listenerSub = listener.start()
     val sub = Future.run()(ct => async {
       val p = Promise[Unit]()
-      val r = await { listener.nextRequest() }
-      async {
-        val ru = respond(r._2, ct, handler(r._1))
-    	p success ru
-      }
+      val (req, exch) = await { listener.nextRequest() }
+      p complete Try(respond(exch, ct, handler(req)))
       p.future
     })
     Subscription(listenerSub, sub)
