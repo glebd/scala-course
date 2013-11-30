@@ -53,8 +53,11 @@ trait NodeScala {
     val listenerSub = listener.start()
     val sub = Future.run()(ct => async {
       val p = Promise[Unit]()
-      val (req, exch) = await { listener.nextRequest() }
-      p complete Try(respond(exch, ct, handler(req)))
+      while (ct.nonCancelled) {
+        val (req, exch) = await { listener.nextRequest() }
+        respond(exch, ct, handler(req))
+      }
+      p success Unit
       p.future
     })
     Subscription(listenerSub, sub)
