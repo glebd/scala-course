@@ -1,19 +1,16 @@
 package suggestions
 
-
-
 import language.postfixOps
 import scala.concurrent._
 import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.util.{Try, Success, Failure}
+import scala.util.{ Try, Success, Failure }
 import rx.lang.scala._
 import org.scalatest._
 import gui._
 
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
-
 
 @RunWith(classOf[JUnitRunner])
 class WikipediaApiTest extends FunSuite {
@@ -46,8 +43,7 @@ class WikipediaApiTest extends FunSuite {
         count += 1
       },
       t => assert(false, s"stream error $t"),
-      () => completed = true
-    )
+      () => completed = true)
     assert(completed && count == 3, "completed: " + completed + ", event count: " + count)
   }
 
