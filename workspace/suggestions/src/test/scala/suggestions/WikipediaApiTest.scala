@@ -47,6 +47,23 @@ class WikipediaApiTest extends FunSuite {
     assert(completed && count == 3, "completed: " + completed + ", event count: " + count)
   }
 
+  test("recovered") {
+    val e = new Exception()
+    val seq = Observable(1, 2, 3, e) map {
+      case n: Int => n
+      case e: Exception => throw e
+    }
+    val obs = seq.recovered
+
+    var actual = List[Try[Any]]()
+    val sub = obs.subscribe { v =>
+      actual = actual :+ v
+    }
+
+    val expected = List(Success(1), Success(2), Success(3), Failure(e))
+    assert(actual === expected)
+  }
+
   test("WikipediaApi should correctly use concatRecovered") {
     val requests = Observable(1, 2, 3)
     val remoteComputation = (n: Int) => Observable(0 to n)
