@@ -9,7 +9,9 @@ import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util.{ Try, Success, Failure }
 import rx.subscriptions.CompositeSubscription
-import rx.lang.scala.Observable
+import rx.lang.scala._
+import rx.lang.scala.Notification._
+import rx.lang.scala.subscriptions.Subscription
 import observablex._
 import search._
 
@@ -50,7 +52,16 @@ trait WikipediaApi {
      *
      * E.g. `1, 2, 3, !Exception!` should become `Success(1), Success(2), Success(3), Failure(Exception), !TerminateStream!`
      */
-    def recovered: Observable[Try[T]] = ???
+    def recovered: Observable[Try[T]] = {
+      Observable { observer: Observer[Try[T]] =>
+        obs.materialize.subscribe(n => n match {
+          case OnNext(v) => observer.onNext(Success(v))
+          case OnError(e) => observer.onNext(Failure(e))
+          case OnCompleted() => observer.onCompleted 
+        })
+        Subscription {}
+      }
+    }
 
     /** Emits the events from the `obs` observable, until `totalSec` seconds have elapsed.
      *
