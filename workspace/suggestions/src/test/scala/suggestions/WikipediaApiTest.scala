@@ -66,16 +66,9 @@ class WikipediaApiTest extends FunSuite {
 
   test("WikipediaApi should correctly use timedOut") {
     val requests = Observable.interval(1 second)
-    val to = requests.timedOut(2)
+    val to = requests.timedOut(3)
 
     assert(to.toBlockingObservable.toList === List(0, 1))
-  }
-
-  test("timedOut should collect the correct number of values") {
-    val nbTicks = 4
-    val clock = Observable.interval(1 second)
-    val timedOut = clock.timedOut(nbTicks)
-    assert(timedOut.toBlockingObservable.toList.length === nbTicks)
   }
 
   test("WikipediaApi should correctly use timedOut when first completes") {
@@ -83,6 +76,11 @@ class WikipediaApiTest extends FunSuite {
     val to = requests.timedOut(4)
 
     assert(to.toBlockingObservable.toList === List(0, 1))
+  }
+  
+  test("timedOut") {
+    val seq = Observable(1, 2, 3).zip(Observable.interval(700 millis)).timedOut(1L)
+    assert(seq.toBlockingObservable.toList === List((1, 0)))
   }
 
   test("WikipediaApi should correctly use concatRecovered") {

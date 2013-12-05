@@ -70,7 +70,7 @@ trait WikipediaApi {
      * Note: uses the existing combinators on observables.
      */
     def timedOut(totalSec: Long): Observable[T] = {
-      obs.takeUntil(Observable.interval(totalSec seconds))
+      obs.takeUntil(Observable.interval((totalSec * 1000 - 100) milliseconds))
     }
 
 
