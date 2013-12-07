@@ -77,7 +77,7 @@ class WikipediaApiTest extends FunSuite {
 
     assert(to.toBlockingObservable.toList === List(0, 1))
   }
-  
+
   test("timedOut") {
     val seq = Observable(1, 2, 3).zip(Observable.interval(700 millis)).timedOut(1L)
     assert(seq.toBlockingObservable.toList === List((1, 0)))
