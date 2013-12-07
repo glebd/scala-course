@@ -109,7 +109,14 @@ object WikipediaSuggest extends SimpleSwingApplication with ConcreteSwingApi wit
     }
 
     // TO IMPLEMENT
-    val pages: Observable[Try[String]] = ???
+    val pages: Observable[Try[String]] = {
+      val subj = PublishSubject[Try[String]](Success(""))
+      selections subscribe(
+        x => {subj.onNext(Success(x))},
+        e => {subj.onNext(Failure(e))}
+      )
+      subj
+    }
 
     // TO IMPLEMENT
     val pageSubscription: Subscription = pages.observeOn(eventScheduler) subscribe {
