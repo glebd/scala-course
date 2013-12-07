@@ -62,8 +62,11 @@ trait WikipediaApi {
       Observable { observer: Observer[Try[T]] =>
         obs.materialize.subscribe(n => n match {
           case OnNext(v) => observer.onNext(Success(v))
-          case OnError(e) => observer.onNext(Failure(e))
-          case OnCompleted() => observer.onCompleted
+          case OnError(e) => {
+            observer.onNext(Failure(e))
+            observer.onCompleted()
+          }
+          case OnCompleted() => observer.onCompleted()
         })
         Subscription {}
       }
