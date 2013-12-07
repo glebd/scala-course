@@ -111,9 +111,15 @@ object WikipediaSuggest extends SimpleSwingApplication with ConcreteSwingApi wit
     // TO IMPLEMENT
     val pages: Observable[Try[String]] = {
       val subj = PublishSubject[Try[String]](Success(""))
-      selections subscribe(
-        x => {subj.onNext(Success(x))},
-        e => {subj.onNext(Failure(e))}
+      selections tap("selections") subscribe(
+        s => {
+          val f = wikipediaPage(s)
+          val o = ObservableEx(f)
+          o tap("selectionFutures") subscribe(
+            page => subj.onNext(Success(page)),
+            error => subj.onNext(Failure(error))
+          )
+        }
       )
       subj
     }

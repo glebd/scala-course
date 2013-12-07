@@ -69,7 +69,17 @@ trait WikipediaApi {
       }
     }
 
-    /** Emits the events from the `obs` observable, until `totalSec` seconds have elapsed.
+    def tap(msg: String): Observable[T] = {
+      Observable(observer => {
+        obs.subscribe(
+          x => { println(s"$msg onNext"); observer.onNext(x) },
+          e => { println(s"$msg onError $e"); observer.onError(e) },
+          () => { println(s"$msg onComplete"); observer.onCompleted() })
+      })
+    }
+
+    /**
+     * Emits the events from the `obs` observable, until `totalSec` seconds have elapsed.
      *
      * After `totalSec` seconds, if `obs` is not yet completed, the result observable becomes completed.
      *
