@@ -49,7 +49,7 @@ class WikipediaApiTest extends FunSuite {
 
   test("recovered") {
     val e = new Exception()
-    val seq = Observable(1, 2, 3, e) map {
+    val seq = Observable(1, 2, 3, e, 4, 5) map {
       case n: Int => n
       case e: Exception => throw e
     }
