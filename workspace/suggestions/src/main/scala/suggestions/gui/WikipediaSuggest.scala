@@ -88,7 +88,13 @@ object WikipediaSuggest extends SimpleSwingApplication with ConcreteSwingApi wit
 
     // TO IMPLEMENT
     val suggestionSubscription: Subscription =  suggestions.observeOn(eventScheduler) subscribe {
-      x => ???
+      x => x match {
+        case Success(x) => suggestionList.listData = x
+        case Failure(f) => {
+          suggestionList.listData = Nil
+          status.text = f.getLocalizedMessage()
+        }
+      }
     }
 
     // TO IMPLEMENT
