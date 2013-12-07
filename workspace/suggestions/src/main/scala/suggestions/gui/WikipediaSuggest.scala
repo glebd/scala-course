@@ -105,7 +105,7 @@ object WikipediaSuggest extends SimpleSwingApplication with ConcreteSwingApi wit
         if (suggestionList.selection.items.length > 0)
           subj.onNext(suggestionList.selection.items.mkString)
       }
-      subj.observeOn(eventScheduler)
+      subj
     }
 
     // TO IMPLEMENT
