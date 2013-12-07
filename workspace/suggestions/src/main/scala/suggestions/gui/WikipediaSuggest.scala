@@ -120,7 +120,10 @@ object WikipediaSuggest extends SimpleSwingApplication with ConcreteSwingApi wit
 
     // TO IMPLEMENT
     val pageSubscription: Subscription = pages.observeOn(eventScheduler) subscribe {
-      x => ???
+      x => x match {
+        case Success(s) => editorpane.text = s
+        case Failure(f) => editorpane.text = "Error: " + f.getLocalizedMessage()
+      }
     }
 
   }
