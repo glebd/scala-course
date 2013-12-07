@@ -102,7 +102,8 @@ object WikipediaSuggest extends SimpleSwingApplication with ConcreteSwingApi wit
     val selections: Observable[String] = {
       val subj = PublishSubject[String]("")
       button.clicks subscribe { _ =>
-        subj.onNext(suggestionList.selection.items.mkString)
+        if (suggestionList.selection.items.length > 0)
+          subj.onNext(suggestionList.selection.items.mkString)
       }
       subj.observeOn(eventScheduler)
     }
