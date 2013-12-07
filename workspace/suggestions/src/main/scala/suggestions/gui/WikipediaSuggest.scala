@@ -12,6 +12,7 @@ import swing.Swing._
 import javax.swing.UIManager
 import Orientation._
 import rx.subscriptions.CompositeSubscription
+import rx.lang.scala.subjects._
 import rx.lang.scala.Observable
 import rx.lang.scala.Subscription
 import observablex._
@@ -98,7 +99,13 @@ object WikipediaSuggest extends SimpleSwingApplication with ConcreteSwingApi wit
     }
 
     // TO IMPLEMENT
-    val selections: Observable[String] = ???
+    val selections: Observable[String] = {
+      val subj = PublishSubject[String]("")
+      button.clicks subscribe { _ =>
+        subj.onNext(suggestionList.selection.items.mkString)
+      }
+      subj.observeOn(eventScheduler)
+    }
 
     // TO IMPLEMENT
     val pages: Observable[Try[String]] = ???
