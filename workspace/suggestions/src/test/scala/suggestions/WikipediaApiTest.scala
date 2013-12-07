@@ -64,6 +64,29 @@ class WikipediaApiTest extends FunSuite {
     assert(actual === expected)
   }
 
+  test("recovered 2") {
+    val ex1 = new Exception("!")
+    val o1 = Observable(1, 2)
+    val o2 = Observable(ex1)
+    val o3 = Observable(4, 5)
+    val xs = (o1 ++ o2 ++ o3).recovered.toBlockingObservable.toList
+    assert(xs === List(Success(1), Success(2), Failure(ex1)))
+  }
+
+  test("concatRecovered 2") {
+    val ex2 = new Exception("?")
+    def dummy(num: Int) = {
+      if (num != 4) Observable(num) else Observable(ex2)
+    }
+    val o1 = Observable(1, 2, 3, 4, 5).concatRecovered(x => dummy(x))
+    var actual = List[Try[Any]]()
+    val xs = o1 subscribe { v =>
+      actual = actual :+ v
+    }
+    val expected = List(Success(1), Success(2), Success(3), Failure(ex2), Success(5))
+    assert(actual === expected)
+  }
+
   test("WikipediaApi should correctly use timedOut") {
     val requests = Observable.interval(1 second)
     val to = requests.timedOut(3)
