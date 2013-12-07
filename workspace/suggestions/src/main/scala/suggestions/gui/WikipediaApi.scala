@@ -17,25 +17,30 @@ import search._
 
 trait WikipediaApi {
 
-  /** Returns a `Future` with a list of possible completions for a search `term`.
+  /**
+   * Returns a `Future` with a list of possible completions for a search `term`.
    */
   def wikipediaSuggestion(term: String): Future[List[String]]
 
-  /** Returns a `Future` with the contents of the Wikipedia page for the given search `term`.
+  /**
+   * Returns a `Future` with the contents of the Wikipedia page for the given search `term`.
    */
   def wikipediaPage(term: String): Future[String]
 
-  /** Returns an `Observable` with a list of possible completions for a search `term`.
+  /**
+   * Returns an `Observable` with a list of possible completions for a search `term`.
    */
   def wikiSuggestResponseStream(term: String): Observable[List[String]] = ObservableEx(wikipediaSuggestion(term))
 
-  /** Returns an `Observable` with the contents of the Wikipedia page for the given search `term`.
+  /**
+   * Returns an `Observable` with the contents of the Wikipedia page for the given search `term`.
    */
   def wikiPageResponseStream(term: String): Observable[String] = ObservableEx(wikipediaPage(term))
 
   implicit class StringObservableOps(obs: Observable[String]) {
 
-    /** Given a stream of search terms, returns a stream of search terms with spaces replaced by underscores.
+    /**
+     * Given a stream of search terms, returns a stream of search terms with spaces replaced by underscores.
      *
      * E.g. `"erik", "erik meijer", "martin` should become `"erik", "erik_meijer", "martin"`
      */
@@ -47,7 +52,8 @@ trait WikipediaApi {
 
   implicit class ObservableOps[T](obs: Observable[T]) {
 
-    /** Given an observable that can possibly be completed with an error, returns a new observable
+    /**
+     * Given an observable that can possibly be completed with an error, returns a new observable
      * with the same values wrapped into `Success` and the potential error wrapped into `Failure`.
      *
      * E.g. `1, 2, 3, !Exception!` should become `Success(1), Success(2), Success(3), Failure(Exception), !TerminateStream!`
@@ -57,7 +63,7 @@ trait WikipediaApi {
         obs.materialize.subscribe(n => n match {
           case OnNext(v) => observer.onNext(Success(v))
           case OnError(e) => observer.onNext(Failure(e))
-          case OnCompleted() => observer.onCompleted 
+          case OnCompleted() => observer.onCompleted
         })
         Subscription {}
       }
@@ -73,8 +79,8 @@ trait WikipediaApi {
       obs.takeUntil(Observable.interval((totalSec * 1000 - 100) milliseconds))
     }
 
-
-    /** Given a stream of events `obs` and a method `requestMethod` to map a request `T` into
+    /**
+     * Given a stream of events `obs` and a method `requestMethod` to map a request `T` into
      * a stream of responses `S`, returns a stream of all the responses wrapped into a `Try`.
      * The elements of the response stream should reflect the order of their corresponding events in `obs`.
      *
