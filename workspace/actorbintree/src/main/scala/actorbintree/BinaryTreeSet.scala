@@ -89,7 +89,7 @@ class BinaryTreeSet extends Actor {
         pendingQueue = q
       }
       root = newRoot
-      context.unbecome()
+      context.become(normal)
   }
 
 }
