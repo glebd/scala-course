@@ -81,6 +81,7 @@ class BinaryTreeSet extends Actor {
     */
   def garbageCollecting(newRoot: ActorRef): Receive = {
     case msg: Operation => pendingQueue = pendingQueue.enqueue(msg)
+    case GC =>
     case CopyFinished =>
       while (!pendingQueue.isEmpty) {
         val (op, q) = pendingQueue.dequeue
