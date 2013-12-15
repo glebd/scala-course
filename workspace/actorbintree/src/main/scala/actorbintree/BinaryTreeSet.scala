@@ -69,6 +69,7 @@ class BinaryTreeSet extends Actor {
   val normal: Receive = {
     case msg @ Contains(requester, id, elem) => root ! msg
     case msg @ Insert(requester, id, elem) => root ! msg
+    case msg @ Remove(requester, id, elem) => root ! msg
   }
 
   // optional
@@ -139,6 +140,22 @@ class BinaryTreeNode(val elem: Int, initiallyRemoved: Boolean) extends Actor {
       } else {
         // same as current element
         if (removed) removed = false
+        requester ! OperationFinished(id)
+      }
+    
+    case msg @ Remove(requester, id, e) =>
+      if (e < elem) {
+        subtrees.get(Left) match {
+          case Some(subtree) => subtree ! msg
+          case None => //throw new NoSuchElementException
+        }
+      } else if (e > elem) {
+        subtrees.get(Right) match {
+          case Some(subtree) => subtree ! msg
+          case None => //throw new NoSuchElementException
+        }
+      } else {
+        removed = true
         requester ! OperationFinished(id)
       }
       
