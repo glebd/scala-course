@@ -157,12 +157,12 @@ class BinaryTreeNode(val elem: Int, initiallyRemoved: Boolean) extends Actor {
       if (e < elem) {
         subtrees.get(Left) match {
           case Some(subtree) => subtree ! msg
-          case None => //throw new NoSuchElementException
+          case None => requester ! OperationFinished(id)
         }
       } else if (e > elem) {
         subtrees.get(Right) match {
           case Some(subtree) => subtree ! msg
-          case None => //throw new NoSuchElementException
+          case None => requester ! OperationFinished(id)
         }
       } else {
         removed = true
