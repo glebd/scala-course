@@ -67,7 +67,11 @@ class BinaryTreeSet extends Actor {
   // optional
   /** Accepts `Operation` and `GC` messages. */
   val normal: Receive = {
-    case msg => root ! msg
+    case msg: Operation => root ! msg
+    case GC =>
+      var newRoot = createRoot
+      context.become(garbageCollecting(newRoot))
+      root ! CopyTo(newRoot)
   }
 
   // optional
@@ -75,7 +79,14 @@ class BinaryTreeSet extends Actor {
     * `newRoot` is the root of the new binary tree where we want to copy
     * all non-removed elements into.
     */
-  def garbageCollecting(newRoot: ActorRef): Receive = ???
+  def garbageCollecting(newRoot: ActorRef): Receive = {
+    case msg: Operation => pendingQueue = pendingQueue :+ msg
+    case CopyFinished =>
+      root = newRoot
+      for (o <- pendingQueue) root ! o
+      pendingQueue = Queue.empty
+      context.unbecome()
+  }
 
 }
 
@@ -153,6 +164,15 @@ class BinaryTreeNode(val elem: Int, initiallyRemoved: Boolean) extends Actor {
         requester ! OperationFinished(id)
       }
       
+    case CopyTo(node) =>
+      val children = subtrees.values.toSet
+      if (children.isEmpty && removed) context.parent ! CopyFinished
+      else {
+        for (c <- children) c ! CopyTo(node)
+        if (!removed) node ! Insert(self, elem, elem)
+        context.become(copying(children, removed))
+      }
+            
     case _ =>
   }
 
@@ -160,6 +180,22 @@ class BinaryTreeNode(val elem: Int, initiallyRemoved: Boolean) extends Actor {
   /** `expected` is the set of ActorRefs whose replies we are waiting for,
     * `insertConfirmed` tracks whether the copy of this node to the new tree has been confirmed.
     */
-  def copying(expected: Set[ActorRef], insertConfirmed: Boolean): Receive = ???
+  def copying(expected: Set[ActorRef], insertConfirmed: Boolean): Receive = {
+    case CopyFinished =>
+      val newExpected = expected - sender
+      if (newExpected.isEmpty && insertConfirmed) {
+        context.parent ! CopyFinished
+        context.become(normal)
+      } else {
+        context.become(copying(newExpected, insertConfirmed))
+      }
+    case OperationFinished(id) =>
+      if (expected.isEmpty) {
+        context.parent ! CopyFinished
+        context.become(normal)
+      } else {
+        context.become(copying(expected, true))
+      }
+  }
 
 }
