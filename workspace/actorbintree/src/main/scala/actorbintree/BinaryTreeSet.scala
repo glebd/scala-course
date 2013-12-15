@@ -107,15 +107,11 @@ class BinaryTreeNode(val elem: Int, initiallyRemoved: Boolean) extends Actor {
     
     case msg @ Contains(requester, id, e) =>
       if (e < elem) {
-        if (subtrees.contains(Left))
-          subtrees(Left) ! msg
-        else
-          requester ! ContainsResult(id, false)
+        if (subtrees.contains(Left)) subtrees(Left) ! msg
+        else requester ! ContainsResult(id, false)
       } else if (e > elem) {
-        if (subtrees.contains(Right))
-          subtrees(Right) ! msg
-        else
-          requester ! ContainsResult(id, false)
+        if (subtrees.contains(Right)) subtrees(Right) ! msg
+        else requester ! ContainsResult(id, false)
       } else {
         requester ! ContainsResult(id, !removed)
       }
