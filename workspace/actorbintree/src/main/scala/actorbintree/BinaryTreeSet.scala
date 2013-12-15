@@ -88,6 +88,7 @@ class BinaryTreeSet extends Actor {
         newRoot ! op
         pendingQueue = q
       }
+      root ! PoisonPill
       root = newRoot
       context.become(normal)
   }
