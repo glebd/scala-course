@@ -182,8 +182,8 @@ class BinaryTreeNode(val elem: Int, initiallyRemoved: Boolean) extends Actor {
           self ! OperationFinished(elem)
         }
       }
-            
-    case _ =>
+      
+    case CopyFinished =>
   }
 
   // optional
