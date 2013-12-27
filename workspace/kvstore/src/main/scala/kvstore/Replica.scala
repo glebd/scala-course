@@ -52,14 +52,28 @@ class Replica(val arbiter: ActorRef, persistenceProps: Props) extends Actor {
     case JoinedPrimary   => context.become(leader)
     case JoinedSecondary => context.become(replica)
   }
+  
+  val common: Receive = {
+    case Get(key, id) =>
+      sender ! GetResult(key, kv.get(key), id)
+  }
 
   /* TODO Behavior for  the leader role. */
-  val leader: Receive = {
-    case _ =>
+  val leader: Receive = common orElse {
+    
+    case Insert(key, value, id) =>
+      kv = kv + (key -> value)
+      sender ! OperationAck(id)
+      
+    case Remove(key, id) =>
+      if (kv.contains(key))
+        kv = kv - key
+      sender ! OperationAck(id)
+
   }
 
   /* TODO Behavior for the replica role. */
-  val replica: Receive = {
+  val replica: Receive = common orElse {
     case _ =>
   }
 
