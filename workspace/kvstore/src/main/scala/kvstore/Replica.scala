@@ -55,7 +55,7 @@ class Replica(val arbiter: ActorRef, persistenceProps: Props) extends Actor with
   
   var retries = Map.empty[Long, Cancellable]
   
-  var expectedSeq = 0L
+  var sequence = 0L
   
   val persistence = context.actorOf(persistenceProps)
   context.watch(persistence)
@@ -88,14 +88,14 @@ class Replica(val arbiter: ActorRef, persistenceProps: Props) extends Actor with
   /* TODO Behavior for the replica role. */
   val replica: Receive = common orElse /*LoggingReceive*/ {
     
-    case Snapshot(key, valueOption, seq) if seq > expectedSeq =>
+    case Snapshot(key, valueOption, seq) if seq > sequence =>
       
-    case Snapshot(key, valueOption, seq) if seq < expectedSeq =>
+    case Snapshot(key, valueOption, seq) if seq < sequence =>
       sender ! SnapshotAck(key, seq)
       
     case Snapshot(key, valueOption, seq) =>
       replicators = replicators + sender
-      expectedSeq += 1
+      sequence += 1
       valueOption match {
         case None => kv = kv - key
         case Some(value) => kv = kv + (key -> value)
@@ -106,7 +106,7 @@ class Replica(val arbiter: ActorRef, persistenceProps: Props) extends Actor with
       
     case Persisted(key, seq) =>
       replicators.head ! SnapshotAck(key, seq)
-      expectedSeq = math.max(expectedSeq, seq + 1)
+      sequence = math.max(sequence, seq + 1)
       if (retries.contains(seq)) {
         retries(seq).cancel()
         retries = retries - seq
