@@ -15,6 +15,8 @@ import akka.util.Timeout
 import akka.event.Logging
 import akka.event.LoggingReceive
 import akka.actor.ActorLogging
+import scala.language.postfixOps
+import akka.actor.Cancellable
 
 object Replica {
   sealed trait Operation {
@@ -24,6 +26,8 @@ object Replica {
   case class Insert(key: String, value: String, id: Long) extends Operation
   case class Remove(key: String, id: Long) extends Operation
   case class Get(key: String, id: Long) extends Operation
+  
+  case class RetryPersist(key: String, valueOption: Option[String], id: Long) extends Operation
 
   sealed trait OperationReply
   case class OperationAck(id: Long) extends OperationReply
@@ -48,6 +52,8 @@ class Replica(val arbiter: ActorRef, persistenceProps: Props) extends Actor with
   var secondaries = Map.empty[ActorRef, ActorRef]
   // the current set of replicators
   var replicators = Set.empty[ActorRef]
+  
+  var retries = Map.empty[Long, Cancellable]
   
   var expectedSeq = 0L
   
@@ -95,10 +101,29 @@ class Replica(val arbiter: ActorRef, persistenceProps: Props) extends Actor with
         case Some(value) => kv = kv + (key -> value)
       }
       persistence ! Persist(key, valueOption, seq)
+      val retry = context.system.scheduler.scheduleOnce(100 milliseconds, self, RetryPersist(key, valueOption, seq))
+      retries = retries + (seq -> retry)
       
     case Persisted(key, seq) =>
       replicators.head ! SnapshotAck(key, seq)
       expectedSeq = math.max(expectedSeq, seq + 1)
+      if (retries.contains(seq)) {
+        retries(seq).cancel()
+        retries = retries - seq
+      }
+      
+    case RetryPersist(key, valueOption, seq) =>
+      if (retries.contains(seq)) {
+        retries(seq).cancel()
+        retries = retries - seq
+      }
+      persistence ! Persist(key, valueOption, seq)
+      val retry = context.system.scheduler.scheduleOnce(100 milliseconds, self, RetryPersist(key, valueOption, seq))
+      retries = retries + (seq -> retry)
+  }
+  
+  override def postStop() = {
+    retries foreach (_._2.cancel())
   }
 
 }
