@@ -50,6 +50,9 @@ class Replica(val arbiter: ActorRef, persistenceProps: Props) extends Actor with
   var replicators = Set.empty[ActorRef]
   
   var expectedSeq = 0
+  
+  val persistence = context.actorOf(persistenceProps)
+  context.watch(persistence)
 
   arbiter ! Join
   
@@ -85,12 +88,16 @@ class Replica(val arbiter: ActorRef, persistenceProps: Props) extends Actor with
       sender ! SnapshotAck(key, seq)
       
     case Snapshot(key, valueOption, seq) =>
+      replicators = replicators + sender
       expectedSeq += 1
       valueOption match {
         case None => kv = kv - key
         case Some(value) => kv = kv + (key -> value)
       }
-      sender ! SnapshotAck(key, seq)
+      persistence ! Persist(key, valueOption, seq)
+      
+    case Persisted(key, seq) =>
+      replicators.head ! SnapshotAck(key, seq)
   }
 
 }
