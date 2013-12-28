@@ -80,6 +80,8 @@ class Replica(val arbiter: ActorRef, persistenceProps: Props) extends Actor with
       kv = kv + (key -> value)
       persistence ! Persist(key, Some(value), sequence)
       acks = acks + (sequence -> (sender, id))
+      val retry = context.system.scheduler.scheduleOnce(100 milliseconds, self, RetryPersist(key, Some(value), sequence))
+      retries = retries + (sequence -> retry)
       sequence = sequence + 1
       
     case Remove(key, id) =>
@@ -87,14 +89,29 @@ class Replica(val arbiter: ActorRef, persistenceProps: Props) extends Actor with
         kv = kv - key
       persistence ! Persist(key, None, sequence)
       acks = acks + (sequence -> (sender, id))
+      val retry = context.system.scheduler.scheduleOnce(100 milliseconds, self, RetryPersist(key, None, sequence))
+      retries = retries + (sequence -> retry)
       sequence = sequence + 1
       
     case Persisted(key, seq) =>
+      if (retries.contains(seq)) {
+        retries(seq).cancel()
+        retries = retries - seq
+      }
       if (acks.contains(seq)) {
         val (client, id) = acks(seq)
         client ! OperationAck(id)
         acks = acks - seq
       }
+      
+    case RetryPersist(key, valueOption, seq) =>
+      if (retries.contains(seq)) {
+        retries(seq).cancel()
+        retries = retries - seq
+      }
+      persistence ! Persist(key, valueOption, seq)
+      val retry = context.system.scheduler.scheduleOnce(100 milliseconds, self, RetryPersist(key, valueOption, seq))
+      retries = retries + (seq -> retry)
   }
 
   /* TODO Behavior for the replica role. */
