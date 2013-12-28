@@ -91,4 +91,9 @@ class Replicator(val replica: ActorRef) extends Actor {
       
   }
 
+  override def postStop() = {
+    for (r <- reminders) { r._2.cancel() }
+    for (t <- timeouts) { t._2.cancel() }
+  }
+
 }
