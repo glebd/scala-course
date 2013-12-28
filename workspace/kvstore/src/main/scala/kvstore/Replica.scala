@@ -49,7 +49,7 @@ class Replica(val arbiter: ActorRef, persistenceProps: Props) extends Actor with
   // the current set of replicators
   var replicators = Set.empty[ActorRef]
   
-  var expectedSeq = 0
+  var expectedSeq = 0L
   
   val persistence = context.actorOf(persistenceProps)
   context.watch(persistence)
@@ -98,6 +98,7 @@ class Replica(val arbiter: ActorRef, persistenceProps: Props) extends Actor with
       
     case Persisted(key, seq) =>
       replicators.head ! SnapshotAck(key, seq)
+      expectedSeq = math.max(expectedSeq, seq + 1)
   }
 
 }
