@@ -54,6 +54,7 @@ class Replica(val arbiter: ActorRef, persistenceProps: Props) extends Actor with
   var replicators = Set.empty[ActorRef]
   
   var retries = Map.empty[Long, Cancellable]
+  var timeouts = Map.empty[Long, Cancellable]
   var acks = Map.empty[Long, (ActorRef, Long)] // seq -> (sender, id)
   
   var sequence = 0L
@@ -82,6 +83,8 @@ class Replica(val arbiter: ActorRef, persistenceProps: Props) extends Actor with
       acks = acks + (sequence -> (sender, id))
       val retry = context.system.scheduler.scheduleOnce(100 milliseconds, self, RetryPersist(key, Some(value), sequence))
       retries = retries + (sequence -> retry)
+      val timeout = context.system.scheduler.scheduleOnce(1 second, self, OperationTimeout(sequence))
+      timeouts = timeouts + (sequence -> timeout)
       sequence = sequence + 1
       
     case Remove(key, id) =>
@@ -91,6 +94,8 @@ class Replica(val arbiter: ActorRef, persistenceProps: Props) extends Actor with
       acks = acks + (sequence -> (sender, id))
       val retry = context.system.scheduler.scheduleOnce(100 milliseconds, self, RetryPersist(key, None, sequence))
       retries = retries + (sequence -> retry)
+      val timeout = context.system.scheduler.scheduleOnce(1 second, self, OperationTimeout(sequence))
+      timeouts = timeouts + (sequence -> timeout)
       sequence = sequence + 1
       
     case Persisted(key, seq) =>
@@ -112,6 +117,16 @@ class Replica(val arbiter: ActorRef, persistenceProps: Props) extends Actor with
       persistence ! Persist(key, valueOption, seq)
       val retry = context.system.scheduler.scheduleOnce(100 milliseconds, self, RetryPersist(key, valueOption, seq))
       retries = retries + (seq -> retry)
+      
+    case OperationTimeout(seq) =>
+      if (timeouts.contains(seq)) {
+        timeouts(seq).cancel()
+        timeouts = timeouts - seq
+      }
+      if (acks.contains(seq)) {
+        val (client, id) = acks(seq)
+        client ! OperationFailed(id)
+      }
   }
 
   /* TODO Behavior for the replica role. */
@@ -153,6 +168,7 @@ class Replica(val arbiter: ActorRef, persistenceProps: Props) extends Actor with
   
   override def postStop() = {
     retries foreach (_._2.cancel())
+    timeouts foreach (_._2.cancel())
   }
 
 }
