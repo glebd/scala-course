@@ -12,6 +12,9 @@ import akka.actor.PoisonPill
 import akka.actor.OneForOneStrategy
 import akka.actor.SupervisorStrategy
 import akka.util.Timeout
+import akka.event.Logging
+import akka.event.LoggingReceive
+import akka.actor.ActorLogging
 
 object Replica {
   sealed trait Operation {
@@ -30,7 +33,7 @@ object Replica {
   def props(arbiter: ActorRef, persistenceProps: Props): Props = Props(new Replica(arbiter, persistenceProps))
 }
 
-class Replica(val arbiter: ActorRef, persistenceProps: Props) extends Actor {
+class Replica(val arbiter: ActorRef, persistenceProps: Props) extends Actor with ActorLogging {
   import Replica._
   import Replicator._
   import Persistence._
@@ -74,7 +77,7 @@ class Replica(val arbiter: ActorRef, persistenceProps: Props) extends Actor {
   }
 
   /* TODO Behavior for the replica role. */
-  val replica: Receive = common orElse {
+  val replica: Receive = common orElse /*LoggingReceive*/ {
     
     case Snapshot(key, valueOption, seq) if seq > expectedSeq =>
       
