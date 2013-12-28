@@ -54,7 +54,7 @@ class Replica(val arbiter: ActorRef, persistenceProps: Props) extends Actor with
   var replicators = Set.empty[ActorRef]
   
   var retries = Map.empty[Long, Cancellable]
-  var clients = Map.empty[Long, (ActorRef, Long)] // seq -> (sender, id)
+  var acks = Map.empty[Long, (ActorRef, Long)] // seq -> (sender, id)
   
   var sequence = 0L
   
@@ -79,21 +79,21 @@ class Replica(val arbiter: ActorRef, persistenceProps: Props) extends Actor with
     case Insert(key, value, id) =>
       kv = kv + (key -> value)
       persistence ! Persist(key, Some(value), sequence)
-      clients = clients + (sequence -> (sender, id))
+      acks = acks + (sequence -> (sender, id))
       sequence = sequence + 1
       
     case Remove(key, id) =>
       if (kv.contains(key))
         kv = kv - key
       persistence ! Persist(key, None, sequence)
-      clients = clients + (sequence -> (sender, id))
+      acks = acks + (sequence -> (sender, id))
       sequence = sequence + 1
       
     case Persisted(key, seq) =>
-      if (clients.contains(seq)) {
-        val (client, id) = clients(seq)
+      if (acks.contains(seq)) {
+        val (client, id) = acks(seq)
         client ! OperationAck(id)
-        clients = clients - seq
+        acks = acks - seq
       }
   }
 
