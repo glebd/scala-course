@@ -61,10 +61,10 @@ class Replicator(val replica: ActorRef) extends Actor {
       reminders = reminders + (seq -> remind)      
       
     case SnapshotAck(key, seq) =>
+      reminders = safeCancelAndRemove(reminders, seq)
       val (s, r) = acks(seq)
       s ! Replicated(key, r.id)
       acks = acks - seq
-      reminders = safeCancelAndRemove(reminders, seq)
       
     case Reminder(seq) =>
       reminders = safeCancelAndRemove(reminders, seq)
