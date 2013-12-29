@@ -53,10 +53,9 @@ class Replica(val arbiter: ActorRef, persistenceProps: Props) extends Actor with
   // the current set of replicators
   var replicators = Set.empty[ActorRef]
   
-  var retries = Map.empty[Long, Cancellable]
-  var timeouts = Map.empty[Long, Cancellable]
-  var persistAcks = Map.empty[Long, (ActorRef, Long, Boolean)] // seq -> (sender, id, received)
-  var replicationAcks = Map.empty[Long, (ActorRef, ActorRef, String, Long, Boolean)] // seq -> (replica, client, key, id, received)
+  var retries = Map.empty[Long, Cancellable] // id -> retry (persistence)
+  var timeouts = Map.empty[Long, Cancellable] // id -> timeout (persistence)
+  var acks = Map.empty[Long, (ActorRef, String, Boolean, Set[ActorRef])] // id -> (client, key, persisted, Set(replica))
   
   var sequence = 0L
   
@@ -89,85 +88,90 @@ class Replica(val arbiter: ActorRef, persistenceProps: Props) extends Actor with
       // remove leaving replicas from secondaries
       secondaries = secondaries -- leavingSec
       // stop waiting for any replication ACKs from leaving replicas
-      // send ACKs for pending replications for leaving replicas
-      replicationAcks foreach {
-        case (seq, (replica, client, key, id, rcvd)) if leavingSec.contains(replica) =>
-          context.stop(replica)
-          // stop any pending retries for leaving replicas
-          if (retries.contains(seq)) {
-            retries(seq).cancel()
-            retries = retries - seq
+      // send ACKs for pending replications from leaving replicas
+      acks foreach {
+        case (id, (client, key, persisted, reps)) =>
+          reps foreach { case rep =>
+            if (leavingSec.contains(rep)) {
+              self.tell(Replicated(key, id), secondaries(rep)) // spoof message from replicator
+              context.stop(rep)
+            }
           }
-          self ! SnapshotAck(key, seq)
       }
       // add new replicas to secondaries along with their new replicators
       secondaries = secondaries ++ joiningSec.zipWithIndex.map {
         case (sec, i) => (sec, context.actorOf(Replicator.props(sec)))
       }.toMap
-      // start replicating latest changes to new replicas (no ACKS needed)
+      // start replicating latest changes to new replicators
       kv foreach {
         case (k, v) =>
-          joiningSec foreach {
-            sec => sec ! Snapshot(k, Some(v), 0L)
+          joiningSec foreach { replica =>
+            secondaries(replica) ! Replicate(k, Some(v), sequence)
+            sequence = sequence + 1
             // TODO: retry initial replication?
           }
       }
     
     case Insert(key, value, id) =>
-      log.debug(s"received Insert($key, $value, $id)")
+      log.debug(s"Received Insert($key, $value, $id) from $sender")
       kv = kv + (key -> value)
-      persistence ! Persist(key, Some(value), sequence)
-      persistAcks = persistAcks + (sequence -> (sender, id, false))
-      val retry = context.system.scheduler.scheduleOnce(100 milliseconds, self, RetryPersist(key, Some(value), sequence))
-      retries = retries + (sequence -> retry)
-      val timeout = context.system.scheduler.scheduleOnce(1 second, self, OperationTimeout(sequence))
-      timeouts = timeouts + (sequence -> timeout)
+      persistence ! Persist(key, Some(value), id)
+      val retry = context.system.scheduler.scheduleOnce(100 milliseconds, self, RetryPersist(key, Some(value), id))
+      retries = retries + (id -> retry)
+      val timeout = context.system.scheduler.scheduleOnce(1 second, self, OperationTimeout(id))
+      timeouts = timeouts + (id -> timeout)
+      var reps = Set.empty[ActorRef]
       secondaries foreach {
         case (replica, replicator) =>
-          log.debug(s"Sending Snapshot($key, Some($value), $sequence) to $replica")
-          replica ! Snapshot(key, Some(value), sequence)
-          replicationAcks = replicationAcks + (sequence -> (replica, sender, key, id, false))
+          log.debug(s"Sending Replicate($key, Some($value), $id) to $replicator")
+          replicator ! Replicate(key, Some(value), id)
+          reps = reps + replica
       }
-      sequence = sequence + 1
+      acks = acks + (id -> (sender, key, false, reps))
       
     case Remove(key, id) =>
+      log.debug(s"Received Remove($key, $id) from $sender")
       if (kv.contains(key))
         kv = kv - key
-      persistence ! Persist(key, None, sequence)
-      persistAcks = persistAcks + (sequence -> (sender, id, false))
-      val retry = context.system.scheduler.scheduleOnce(100 milliseconds, self, RetryPersist(key, None, sequence))
-      retries = retries + (sequence -> retry)
-      val timeout = context.system.scheduler.scheduleOnce(1 second, self, OperationTimeout(sequence))
-      timeouts = timeouts + (sequence -> timeout)
+      persistence ! Persist(key, None, id)
+      val retry = context.system.scheduler.scheduleOnce(100 milliseconds, self, RetryPersist(key, None, id))
+      retries = retries + (id -> retry)
+      val timeout = context.system.scheduler.scheduleOnce(1 second, self, OperationTimeout(id))
+      timeouts = timeouts + (id -> timeout)
+      var reps = Set.empty[ActorRef]
       secondaries foreach {
         case (replica, replicator) =>
-          replica ! Snapshot(key, None, sequence)
-          replicationAcks = replicationAcks + (sequence -> (replica, sender, key, id, false))
+          log.debug(s"Sending Replicate($key, None, $id) to $replicator")
+          replicator ! Replicate(key, None, id)
+          reps = reps + replica
       }
-      sequence = sequence + 1
+      acks = acks + (id -> (sender, key, false, reps))
       
-    case Persisted(key, seq) =>
-      log.debug(s"Received Persisted($key, $seq)")
-      if (retries.contains(seq)) {
-        retries(seq).cancel()
-        retries = retries - seq
+    case Persisted(key, id) =>
+      log.debug(s"Received Persisted($key, $id)")
+      if (retries.contains(id)) {
+        retries(id).cancel()
+        retries = retries - id
+        log.debug(s"Cancelling persistence retry for $id, retries = $retries")
       }
-      if (persistAcks.contains(seq)) {
-        val (pclient, pid, _) = persistAcks(seq)
-        if (replicationAcks.contains(seq)) {
-          val (replica, rclient, key, rid, rcvd) = replicationAcks(seq)
-          if (rcvd) {
-            log.debug(s"Sending OperationAck($pid) to $pclient because SnapshotAck was received for it earlier")
-            pclient ! OperationAck(pid)
-            persistAcks = persistAcks - seq
-            replicationAcks = replicationAcks - seq
-          } else {
-            persistAcks = persistAcks + (seq -> (pclient, pid, true))
+      if (acks.contains(id)) {
+        log.debug(s"Acks has id $id")
+        val (client, _, _, reps) = acks(id)
+        // check if there are any replicas with pending acks for this id
+        if (reps.isEmpty) {
+          // no pending acks from replicas, can send success to client
+          log.debug(s"Sending OperationAck($id) to $client because persisted=true and there are no pending ACKs from replicas")
+          client ! OperationAck(id)
+          acks = acks - id
+          if (timeouts.contains(id)) {
+            timeouts(id).cancel()
+            timeouts = timeouts - id
+            log.debug(s"Cancelling timeout for id $id, timeouts = $timeouts")
           }
         } else {
-          log.debug(s"Sending OperationAck($pid) to $pclient because not replicating")
-          pclient ! OperationAck(pid)
-          persistAcks = persistAcks - seq
+          // mark the corresponding ack as persisted
+          acks = acks + (id -> (client, key, true, reps))
+          log.debug(s"Adding pending ACK for id $id to acks: $acks")
         }
       }
       
@@ -180,39 +184,43 @@ class Replica(val arbiter: ActorRef, persistenceProps: Props) extends Actor with
       val retry = context.system.scheduler.scheduleOnce(100 milliseconds, self, RetryPersist(key, valueOption, seq))
       retries = retries + (seq -> retry)
       
-    case OperationTimeout(seq) =>
-      if (timeouts.contains(seq)) {
-        timeouts(seq).cancel()
-        timeouts = timeouts - seq
+    case OperationTimeout(id) =>
+      log.debug(s"Received OperationTimeout($id)")
+      if (timeouts.contains(id)) {
+        timeouts(id).cancel()
+        timeouts = timeouts - id
+        log.debug(s"Cancelling timeout for id $id, timeouts = $timeouts")
       }
-      if (persistAcks.contains(seq)) {
-        val (client, id, _) = persistAcks(seq)
-        persistAcks = persistAcks - seq
+      if (acks.contains(id)) {
+        val (client, key, persisted, reps) = acks(id)
+        acks = acks - id
         client ! OperationFailed(id)
-      } else if (replicationAcks.contains(seq)) {
-        val (replica, client, key, id, _) = replicationAcks(seq)
-        replicationAcks = replicationAcks - seq
-        client ! OperationFailed(id)
+        log.debug(s"Sending OperationFailed($id) to $client, acks = $acks")
       }
       
-    case SnapshotAck(key, seq) =>
-      log.debug(s"Received SnapshotAck($key, $seq)")
-      if (replicationAcks.contains(seq)) {
-        val (replica, rclient, rkey, rid, _) = replicationAcks(seq)
-        if (persistAcks.contains(seq)) {
-          val (pclient, pid, rcvd) = persistAcks(seq)
-          if (rcvd) {
-            log.debug(s"Sending OperationAck($rid) to $rclient because Persisted was received for it earlier")
-            rclient ! OperationAck(rid)
-            persistAcks = persistAcks - seq
-            replicationAcks = replicationAcks - seq
-          } else {
-            replicationAcks = replicationAcks + (seq -> (replica, rclient, rkey, rid, true))
+    case Replicated(key, id) =>
+      // sender = Replicator
+      log.debug(s"Received Replicated($key, $id) from $sender")
+      if (acks.contains(id)) {
+        log.debug(s"Acks contains id $id")
+        val (client, key, persisted, reps) = acks(id)
+        // check if the replica of the sender replicator is in the set of replicas pending ACKs
+        val replica = secondaries.find(_._2 == sender)
+        val reps1 = reps - replica.get._2
+        if (reps1.isEmpty && persisted) {
+          // persisted and no pending ACKs from replicas, report success
+          log.debug(s"Sending OperationAck($id) to $client because there are no pending ACKs from replicas and persisted=true")
+          client ! OperationAck(id)
+          acks = acks - id
+          if (timeouts.contains(id)) {
+            timeouts(id).cancel()
+            timeouts = timeouts - id
+            log.debug(s"Cancelling timeout for id $id, timeouts = $timeouts")
           }
         } else {
-          log.debug(s"Sending OperationAck($rid) to $rclient because not persisting")
-          rclient ! OperationAck(rid)
-          replicationAcks = replicationAcks - seq
+          // update set of pending ACKs from replicas
+          acks = acks + (id -> (client, key, persisted, reps1))
+          log.debug(s"Updating pending ACK for id $id with reps: $reps1")
         }
       }
   }

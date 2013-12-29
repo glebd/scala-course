@@ -15,7 +15,7 @@ object Replicator {
   case class SnapshotAck(key: String, seq: Long)
   
   case class Reminder(seq: Long, numRetries: Long)
-  case class OperationTimeout(seq: Long)
+  case class OperationTimeout(id: Long)
 
   def props(replica: ActorRef): Props = Props(new Replicator(replica))
 }
