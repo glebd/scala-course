@@ -68,8 +68,8 @@ class Replica(val arbiter: ActorRef, persistenceProps: Props) extends Actor with
   arbiter ! Join
   
   override val supervisorStrategy = OneForOneStrategy(maxNrOfRetries = 100) {
-    case e: PersistenceException =>
-      log.debug(s"Restarting supervisor strategy: $e")
+    case _: PersistenceException =>
+      log.debug(s"Resuming supervisor strategy")
       SupervisorStrategy.Restart
   }
   
