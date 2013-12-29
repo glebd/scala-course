@@ -214,11 +214,13 @@ class Replica(val arbiter: ActorRef, persistenceProps: Props) extends Actor with
       // sender = Replicator
       log.debug(s"Received Replicated($key, $id) from $sender")
       if (acks.contains(id)) {
-        log.debug(s"Acks contains id $id")
         val (client, key, persisted, reps) = acks(id)
+        log.debug(s"Acks contains id $id with reps = $reps, persisted = $persisted")
         // check if the replica of the sender replicator is in the set of replicas pending ACKs
         val replica = secondaries.find(_._2 == sender)
-        val reps1 = reps - replica.get._2
+        log.debug(s"Found replica $replica for sender replicator $sender")
+        val reps1 = reps - replica.get._1
+        log.debug(s"New reps = $reps1")
         if (reps1.isEmpty && persisted) {
           // persisted and no pending ACKs from replicas, report success
           log.debug(s"Sending OperationAck($id) to $client because there are no pending ACKs from replicas and persisted=true")
