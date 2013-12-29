@@ -60,10 +60,12 @@ class Replica(val arbiter: ActorRef, persistenceProps: Props) extends Actor with
   
   var sequence = 0L
   
-  val persistence = context.actorOf(persistenceProps)
+  var persistence = context.actorOf(persistenceProps, "persistence")
   context.watch(persistence)
 
   arbiter ! Join
+  
+//  override def supervisorStrategy = SupervisorStrategy.stoppingStrategy
   
   def receive = {
     case JoinedPrimary   => context.become(leader)
@@ -71,8 +73,13 @@ class Replica(val arbiter: ActorRef, persistenceProps: Props) extends Actor with
   }
   
   val common: Receive = {
+    
     case Get(key, id) =>
       sender ! GetResult(key, kv.get(key), id)
+      
+    case Terminated(_) =>
+      log.debug("Persistence terminated, recreating")
+      persistence = context.actorOf(persistenceProps, "persistence")
   }
 
   /* TODO Behavior for  the leader role. */
