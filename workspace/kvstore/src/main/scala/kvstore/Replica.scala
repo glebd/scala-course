@@ -28,6 +28,7 @@ object Replica {
   case class Get(key: String, id: Long) extends Operation
   
   case class RetryPersist(key: String, valueOption: Option[String], id: Long) extends Operation
+  case class OperationTimeout(id: Long)
 
   sealed trait OperationReply
   case class OperationAck(id: Long) extends OperationReply
