@@ -17,6 +17,8 @@ import akka.event.LoggingReceive
 import akka.actor.ActorLogging
 import scala.language.postfixOps
 import akka.actor.Cancellable
+import akka.actor.OneForOneStrategy
+import akka.dispatch.sysmsg.Resume
 
 object Replica {
   sealed trait Operation {
@@ -65,7 +67,11 @@ class Replica(val arbiter: ActorRef, persistenceProps: Props) extends Actor with
 
   arbiter ! Join
   
-//  override def supervisorStrategy = SupervisorStrategy.stoppingStrategy
+  override val supervisorStrategy = OneForOneStrategy(maxNrOfRetries = 100) {
+    case e: PersistenceException =>
+      log.debug(s"Restarting supervisor strategy: $e")
+      SupervisorStrategy.Restart
+  }
   
   def receive = {
     case JoinedPrimary   => context.become(leader)
@@ -256,9 +262,19 @@ class Replica(val arbiter: ActorRef, persistenceProps: Props) extends Actor with
   val replica: Receive = common orElse /*LoggingReceive*/ {
     
     case Snapshot(key, valueOption, seq) if seq > sequence =>
+      replicators = replicators + sender
+      if (retries.contains(seq)) {
+        retries(seq).cancel()
+        retries = retries - seq
+      }
       
     case Snapshot(key, valueOption, seq) if seq < sequence =>
+      replicators = replicators + sender
       sender ! SnapshotAck(key, seq)
+      if (retries.contains(seq)) {
+        retries(seq).cancel()
+        retries = retries - seq
+      }
       
     case Snapshot(key, valueOption, seq) =>
       replicators = replicators + sender
