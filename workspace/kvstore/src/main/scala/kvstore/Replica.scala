@@ -83,9 +83,6 @@ class Replica(val arbiter: ActorRef, persistenceProps: Props) extends Actor with
     case Get(key, id) =>
       sender ! GetResult(key, kv.get(key), id)
       
-    case Terminated(_) =>
-      log.debug("Persistence terminated, recreating")
-      persistence = context.actorOf(persistenceProps, "persistence")
   }
 
   /* TODO Behavior for  the leader role. */
