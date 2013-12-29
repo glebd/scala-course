@@ -78,23 +78,32 @@ class Replica(val arbiter: ActorRef, persistenceProps: Props) extends Actor with
   val leader: Receive = common orElse /*LoggingReceive*/ {
 
     case Replicas(replicas) =>
+      log.debug(s"Received replicas: $replicas")
       val allSec = (replicas - self)
+      log.debug(s"All secondaries: $allSec")
       val joiningSec = allSec.diff(secondaries.keySet)
+      log.debug(s"Joining secondaries: $joiningSec")
       val leavingSec = secondaries.keySet.diff(allSec)
+      log.debug(s"Leaving secondaries: $leavingSec")
       // stop replicators for leaving replicas
       val replicatorsToStop = secondaries.filterKeys(x => leavingSec.contains(x)).values.toSet
-      replicators = replicators -- replicatorsToStop
+      log.debug(s"Stopping replicators: $replicatorsToStop")
       replicatorsToStop foreach { context.stop(_) }
+      replicators = replicators -- replicatorsToStop
+      log.debug(s"Replicators without leaving replicators: $replicators")
       // remove leaving replicas from secondaries
       secondaries = secondaries -- leavingSec
+      log.debug(s"Secondaries without leaving replicas: $secondaries")
       // stop waiting for any replication ACKs from leaving replicas
       // send ACKs for pending replications from leaving replicas
       acks foreach {
         case (id, (client, key, persisted, reps)) =>
           reps foreach { case rep =>
             if (leavingSec.contains(rep)) {
-              self.tell(Replicated(key, id), secondaries(rep)) // spoof message from replicator
-              context.stop(rep)
+              val replicator = secondaries(rep)
+              self.tell(Replicated(key, id), replicator) // spoof message from replicator
+              log.debug(s"Sending Replicated($key, $id) to self as replicator $replicator and stopping replicator")
+              context.stop(replicator)
             }
           }
       }
@@ -102,11 +111,14 @@ class Replica(val arbiter: ActorRef, persistenceProps: Props) extends Actor with
       secondaries = secondaries ++ joiningSec.zipWithIndex.map {
         case (sec, i) => (sec, context.actorOf(Replicator.props(sec)))
       }.toMap
+      log.debug(s"Secondaries with joining replicas: $secondaries")
       // start replicating latest changes to new replicators
       kv foreach {
         case (k, v) =>
           joiningSec foreach { replica =>
-            secondaries(replica) ! Replicate(k, Some(v), sequence)
+            val replicator = secondaries(replica)
+            log.debug(s"Sending initial Replicate($k, Some($v), sequence) to replicator $replicator")
+            replicator ! Replicate(k, Some(v), sequence)
             sequence = sequence + 1
             // TODO: retry initial replication?
           }
@@ -155,8 +167,8 @@ class Replica(val arbiter: ActorRef, persistenceProps: Props) extends Actor with
         log.debug(s"Cancelling persistence retry for $id, retries = $retries")
       }
       if (acks.contains(id)) {
-        log.debug(s"Acks has id $id")
         val (client, _, _, reps) = acks(id)
+        log.debug(s"Acks has id $id with reps = $reps")
         // check if there are any replicas with pending acks for this id
         if (reps.isEmpty) {
           // no pending acks from replicas, can send success to client
