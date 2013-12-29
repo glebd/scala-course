@@ -91,22 +91,27 @@ class Replica(val arbiter: ActorRef, persistenceProps: Props) extends Actor with
       replicatorsToStop foreach { context.stop(_) }
       replicators = replicators -- replicatorsToStop
       log.debug(s"Replicators without leaving replicators: $replicators")
-      // remove leaving replicas from secondaries
-      secondaries = secondaries -- leavingSec
-      log.debug(s"Secondaries without leaving replicas: $secondaries")
       // stop waiting for any replication ACKs from leaving replicas
       // send ACKs for pending replications from leaving replicas
+      var idsToAck = Set.empty[Long]
       acks foreach {
         case (id, (client, key, persisted, reps)) =>
           reps foreach { case rep =>
             if (leavingSec.contains(rep)) {
               val replicator = secondaries(rep)
-              self.tell(Replicated(key, id), replicator) // spoof message from replicator
-              log.debug(s"Sending Replicated($key, $id) to self as replicator $replicator and stopping replicator")
+              client ! OperationAck(id)
+              log.debug(s"Sending OperationAck($id) to client $client and stopping replicator")
               context.stop(replicator)
+              idsToAck = idsToAck + id
             }
           }
       }
+      log.debug(s"Removing acked operations from acks: $idsToAck")
+      acks = acks -- idsToAck
+      log.debug(s"Acks without leaving/acked replicas: $acks")
+      // remove leaving replicas from secondaries
+      secondaries = secondaries -- leavingSec
+      log.debug(s"Secondaries without leaving replicas: $secondaries")
       // add new replicas to secondaries along with their new replicators
       secondaries = secondaries ++ joiningSec.zipWithIndex.map {
         case (sec, i) => (sec, context.actorOf(Replicator.props(sec)))
