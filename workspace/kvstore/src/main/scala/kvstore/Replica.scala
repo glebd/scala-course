@@ -133,7 +133,7 @@ class Replica(val arbiter: ActorRef, persistenceProps: Props) extends Actor with
         case (k, v) =>
           joiningSec foreach { replica =>
             val replicator = secondaries(replica)
-            log.debug(s"Sending initial Replicate($k, Some($v), sequence) to replicator $replicator")
+            log.debug(s"Sending initial Replicate($k, Some($v), $sequence) to replicator $replicator")
             replicator ! Replicate(k, Some(v), sequence)
             sequence = sequence + 1
             // TODO: retry initial replication?
