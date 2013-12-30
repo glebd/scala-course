@@ -45,11 +45,10 @@ class Replicator(val replica: ActorRef) extends Actor with ActorLogging {
   }
   
   def safeCancelAndRemove(m: Map[Long, Cancellable], seq: Long): Map[Long, Cancellable] = {
-    m.get(seq) match {
-      case Some(c) => c.cancel()
-      case None =>
-    }
-    m - seq
+    if (m.contains(seq)) {
+      m(seq).cancel
+      m - seq
+    } else m
   }
   
   /* TODO Behavior for the Replicator. */
