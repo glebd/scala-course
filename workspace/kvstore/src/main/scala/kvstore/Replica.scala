@@ -109,10 +109,8 @@ class Replica(val arbiter: ActorRef, persistenceProps: Props) extends Actor with
         case (id, (client, key, persisted, reps)) =>
           reps foreach { case rep =>
             if (leavingSec.contains(rep)) {
-              val replicator = secondaries(rep)
               client ! OperationAck(id)
-              log.debug(s"Sending OperationAck($id) to client $client and stopping replicator")
-              context.stop(replicator)
+              log.debug(s"Sending OperationAck($id) to client $client")
               idsToAck = idsToAck + id
             }
           }
