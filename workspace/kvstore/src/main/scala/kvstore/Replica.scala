@@ -69,8 +69,11 @@ class Replica(val arbiter: ActorRef, persistenceProps: Props) extends Actor with
   
   override val supervisorStrategy = OneForOneStrategy(maxNrOfRetries = 100) {
     case _: PersistenceException =>
-      log.debug(s"Resuming supervisor strategy")
-      SupervisorStrategy.Restart
+      log.debug("Restarting strategy due to persistence exception")
+      Restart
+    case e: NoSuchElementException =>
+      log.debug("Restarting strategy due to key not found exception")
+      Restart
   }
   
   def receive = {
