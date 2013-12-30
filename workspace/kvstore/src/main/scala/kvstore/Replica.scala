@@ -259,6 +259,7 @@ class Replica(val arbiter: ActorRef, persistenceProps: Props) extends Actor with
   val replica: Receive = common orElse /*LoggingReceive*/ {
     
     case Snapshot(key, valueOption, seq) if seq > sequence =>
+
       replicators = replicators + sender
       if (retries.contains(seq)) {
         retries(seq).cancel()
