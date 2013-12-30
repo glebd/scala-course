@@ -201,14 +201,14 @@ class Replica(val arbiter: ActorRef, persistenceProps: Props) extends Actor with
         }
       }
       
-    case RetryPersist(key, valueOption, seq) =>
-      if (retries.contains(seq)) {
-        retries(seq).cancel()
-        retries = retries - seq
+    case RetryPersist(key, valueOption, id) =>
+      if (retries.contains(id)) {
+        retries(id).cancel()
+        retries = retries - id
       }
-      persistence ! Persist(key, valueOption, seq)
-      val retry = context.system.scheduler.scheduleOnce(100 milliseconds, self, RetryPersist(key, valueOption, seq))
-      retries = retries + (seq -> retry)
+      persistence ! Persist(key, valueOption, id)
+      val retry = context.system.scheduler.scheduleOnce(100 milliseconds, self, RetryPersist(key, valueOption, id))
+      retries = retries + (id -> retry)
       
     case OperationTimeout(id) =>
       log.debug(s"Received OperationTimeout($id)")
@@ -257,7 +257,7 @@ class Replica(val arbiter: ActorRef, persistenceProps: Props) extends Actor with
   val replica: Receive = common orElse /*LoggingReceive*/ {
     
     case Snapshot(key, valueOption, seq) if seq > sequence =>
-
+      
       replicators = replicators + sender
       if (retries.contains(seq)) {
         retries(seq).cancel()
