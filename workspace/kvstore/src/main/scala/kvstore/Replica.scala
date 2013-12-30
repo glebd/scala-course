@@ -99,7 +99,7 @@ class Replica(val arbiter: ActorRef, persistenceProps: Props) extends Actor with
       // stop replicators for leaving replicas
       val replicatorsToStop = secondaries.filterKeys(x => leavingSec.contains(x)).values.toSet
       log.debug(s"Stopping replicators: $replicatorsToStop")
-      replicatorsToStop foreach { context.stop(_) }
+      replicatorsToStop foreach { _ ! PoisonPill }
       replicators = replicators -- replicatorsToStop
       log.debug(s"Replicators without leaving replicators: $replicators")
       // stop waiting for any replication ACKs from leaving replicas
