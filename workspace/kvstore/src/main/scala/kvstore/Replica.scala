@@ -78,7 +78,7 @@ class Replica(val arbiter: ActorRef, persistenceProps: Props) extends Actor with
     case JoinedSecondary => context.become(replica)
   }
   
-  val common: Receive = {
+  val common: Receive = LoggingReceive {
     
     case Get(key, id) =>
       sender ! GetResult(key, kv.get(key), id)
@@ -86,7 +86,7 @@ class Replica(val arbiter: ActorRef, persistenceProps: Props) extends Actor with
   }
 
   /* TODO Behavior for  the leader role. */
-  val leader: Receive = common orElse /*LoggingReceive*/ {
+  val leader: Receive = common orElse LoggingReceive {
 
     case Replicas(replicas) =>
       log.debug(s"Received replicas: $replicas")
@@ -254,7 +254,7 @@ class Replica(val arbiter: ActorRef, persistenceProps: Props) extends Actor with
   }
 
   /* TODO Behavior for the replica role. */
-  val replica: Receive = common orElse /*LoggingReceive*/ {
+  val replica: Receive = common orElse LoggingReceive {
     
     case Snapshot(key, valueOption, seq) if seq > sequence =>
       
