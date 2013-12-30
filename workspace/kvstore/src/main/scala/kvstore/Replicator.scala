@@ -96,7 +96,7 @@ class Replicator(val replica: ActorRef) extends Actor with ActorLogging {
   override def postStop() = {
     log.debug("Replicator postStop()")
     acks foreach (_._2._3.cancel())
-    dequeueMsg.cancel()
+    if (dequeueMsg != null) dequeueMsg.cancel()
   }
 
 }
