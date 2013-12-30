@@ -6,6 +6,8 @@ import akka.actor.ActorRef
 import akka.actor.Cancellable
 import scala.concurrent.duration._
 import scala.language.postfixOps
+import scala.collection.mutable.Queue
+import akka.actor.ActorLogging
 
 object Replicator {
   case class Replicate(key: String, valueOption: Option[String], id: Long)
@@ -19,7 +21,7 @@ object Replicator {
   def props(replica: ActorRef): Props = Props(new Replicator(replica))
 }
 
-class Replicator(val replica: ActorRef) extends Actor {
+class Replicator(val replica: ActorRef) extends Actor with ActorLogging {
   import Replicator._
   import Replica._
   import context.dispatcher
