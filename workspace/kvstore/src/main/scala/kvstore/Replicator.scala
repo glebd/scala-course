@@ -52,49 +52,49 @@ class Replicator(val replica: ActorRef) extends Actor with ActorLogging {
     
     case r @ Replicate(key, valueOption, id) =>
       queue += r
-      log.debug(s"Received Replicate($key, $valueOption, $id) from $sender")
+      log.debug(s"[Replicator] Received Replicate($key, $valueOption, $id) from $sender")
       dequeueMsg = context.system.scheduler.scheduleOnce(1 millisecond, self, Dequeue(sender))
-      log.debug(s"Scheduling dequeue from $queue")
+      log.debug(s"[Replicator] Scheduling dequeue from $queue")
       
     case Dequeue(primary) =>
       val r = queue.dequeue
       val seq = nextSeq
-      log.debug(s"Dequeued $r, queue: $queue")
+      log.debug(s"[Replicator] Dequeued $r, queue: $queue")
       val reminder = context.system.scheduler.scheduleOnce(1 millisecond, self, Reminder(seq))
       acks = acks + (seq -> (primary, r, reminder))
-      log.debug(s"Scheduled reminder $reminder in 1 ms")
+      log.debug(s"[Replicator] Scheduled reminder $reminder in 1 ms")
       
     case SnapshotAck(key, seq) =>
       val (s, r, reminder) = acks(seq)
-      log.debug(s"Received SnapshotAck($key, $seq, $reminder)")
+      log.debug(s"[Replicator] Received SnapshotAck($key, $seq, $reminder)")
       s ! Replicated(key, r.id)
-      log.debug(s"Sending Replicated($key, ${r.id}) to $s")
+      log.debug(s"[Replicator] Sending Replicated($key, ${r.id}) to $s")
       acks = acks - seq
-      log.debug(s"Removed seq $seq from acks, now $acks")
+      log.debug(s"[Replicator] Removed seq $seq from acks, now $acks")
       if (!queue.isEmpty) {
         dequeueMsg = context.system.scheduler.scheduleOnce(1 millisecond, self, Dequeue(s))
-        log.debug(s"Scheduling dequeue from $queue")
+        log.debug(s"[Replicator] Scheduling dequeue from $queue")
       } else {
-        log.debug("Queue empty")
+        log.debug("[Replicator] Queue empty")
       }
       
     case Reminder(seq) =>
-      log.debug(s"Received Reminder($seq)")
+      log.debug(s"[Replicator] Received Reminder($seq)")
       if (acks contains seq) {
         val (s, r, reminder) = acks(seq)
-        log.debug(s"Re-sending Snapshot(${r.key}, ${r.valueOption}, $seq)")
+        log.debug(s"[Replicator] Re-sending Snapshot(${r.key}, ${r.valueOption}, $seq)")
         replica ! Snapshot(r.key, r.valueOption, seq)
         val reminder1 = context.system.scheduler.scheduleOnce(100 milliseconds, self, Reminder(seq))
         acks = acks + (seq -> (s, r, reminder1))
-        log.debug(s"Scheduled reminder $reminder1 in 100 ms")
+        log.debug(s"[Replicator] Scheduled reminder $reminder1 in 100 ms")
       } else {
-        log.error(s"No such seq $seq in acks!")
+        log.error(s"[Replicator] No such seq $seq in acks!")
       }
       
   }
 
   override def postStop() = {
-    log.debug("Replicator postStop()")
+    log.debug("[Replicator] postStop()")
     acks foreach (_._2._3.cancel())
     if (dequeueMsg != null) dequeueMsg.cancel()
   }
