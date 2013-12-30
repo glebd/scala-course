@@ -72,7 +72,7 @@ class Replica(val arbiter: ActorRef, persistenceProps: Props) extends Actor with
       log.debug("Restarting strategy due to persistence exception")
       Restart
     case e: NoSuchElementException =>
-      log.debug("Restarting strategy due to key not found exception")
+      log.debug(s"Restarting strategy due to key not found exception; self = $self")
       Restart
   }
   
