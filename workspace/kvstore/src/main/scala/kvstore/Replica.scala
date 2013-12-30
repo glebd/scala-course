@@ -283,6 +283,10 @@ class Replica(val arbiter: ActorRef, persistenceProps: Props) extends Actor with
       log.debug(s"[Replica] Snapshot($key, $valueOption, $seq) and $seq == $sequence")
       replicators = replicators + sender
       log.debug(s"[Replica] Replicators: $replicators")
+      if (retries.contains(seq)) {
+        retries(seq).cancel()
+        retries = retries - seq
+      }
 //      sequence += 1
       valueOption match {
         case None => kv = kv - key
