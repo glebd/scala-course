@@ -260,24 +260,30 @@ class Replica(val arbiter: ActorRef, persistenceProps: Props) extends Actor with
   val replica: Receive = common orElse LoggingReceive {
     
     case Snapshot(key, valueOption, seq) if seq > sequence =>
-      
+      log.debug(s"[Replica] Snapshot($key, $valueOption, $seq) and $seq > $sequence")
       replicators = replicators + sender
+      log.debug(s"[Replica] Replicators: $replicators")
       if (retries.contains(seq)) {
         retries(seq).cancel()
         retries = retries - seq
       }
       
     case Snapshot(key, valueOption, seq) if seq < sequence =>
+      log.debug(s"[Replica] Snapshot($key, $valueOption, $seq) and $seq < $sequence")
       replicators = replicators + sender
+      log.debug(s"[Replica] Replicators: $replicators")
       sender ! SnapshotAck(key, seq)
+      log.debug(s"[Replica] Sending SnapshotAck($key, $seq) to $sender")
       if (retries.contains(seq)) {
         retries(seq).cancel()
         retries = retries - seq
       }
       
     case Snapshot(key, valueOption, seq) =>
+      log.debug(s"[Replica] Snapshot($key, $valueOption, $seq) and $seq == $sequence")
       replicators = replicators + sender
       sequence += 1
+      log.debug(s"[Replica] Replicators: $replicators")
       valueOption match {
         case None => kv = kv - key
         case Some(value) => kv = kv + (key -> value)
@@ -287,14 +293,18 @@ class Replica(val arbiter: ActorRef, persistenceProps: Props) extends Actor with
       retries = retries + (seq -> retry)
       
     case Persisted(key, seq) =>
+      log.debug(s"[Replica] Persisted($key, $seq)")
       replicators.head ! SnapshotAck(key, seq)
+      log.debug(s"[Replica] Sending SnapshotAck($key, $seq) to ${replicators.head}")
       sequence = math.max(sequence, seq + 1)
+      log.debug(s"[Replica] New sequence = $sequence")
       if (retries.contains(seq)) {
         retries(seq).cancel()
         retries = retries - seq
       }
       
     case RetryPersist(key, valueOption, seq) =>
+      log.debug(s"[Replica] RetryPersist($key, $valueOption, $seq)")
       if (retries.contains(seq)) {
         retries(seq).cancel()
         retries = retries - seq
