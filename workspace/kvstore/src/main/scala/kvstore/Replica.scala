@@ -282,8 +282,8 @@ class Replica(val arbiter: ActorRef, persistenceProps: Props) extends Actor with
     case Snapshot(key, valueOption, seq) =>
       log.debug(s"[Replica] Snapshot($key, $valueOption, $seq) and $seq == $sequence")
       replicators = replicators + sender
-      sequence += 1
       log.debug(s"[Replica] Replicators: $replicators")
+//      sequence += 1
       valueOption match {
         case None => kv = kv - key
         case Some(value) => kv = kv + (key -> value)
