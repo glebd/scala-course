@@ -287,7 +287,7 @@ class Replica(val arbiter: ActorRef, persistenceProps: Props) extends Actor with
         retries(seq).cancel()
         retries = retries - seq
       }
-//      sequence += 1
+      sequence = math.max(sequence, seq + 1)
       valueOption match {
         case None => kv = kv - key
         case Some(value) => kv = kv + (key -> value)
