@@ -108,6 +108,8 @@ class Replica(val arbiter: ActorRef, persistenceProps: Props) extends Actor with
       // stop waiting for any replication ACKs from leaving replicas
       // send ACKs for pending replications from leaving replicas
       var idsToAck = Set.empty[Long]
+      // Remove leaving replicas from reps of every pending ACK
+      var acks2 = Map.empty[Long, (ActorRef, String, Boolean, Set[ActorRef])]
       acks foreach {
         case (id, (client, key, persisted, reps)) =>
           reps foreach { case rep =>
@@ -117,7 +119,9 @@ class Replica(val arbiter: ActorRef, persistenceProps: Props) extends Actor with
               idsToAck = idsToAck + id
             }
           }
+          acks2 = acks2 + (id -> (client, key, persisted, reps -- leavingSec))
       }
+      acks = acks2
       log.debug(s"Removing acked operations from acks: $idsToAck")
       acks = acks -- idsToAck
       log.debug(s"Acks without leaving/acked replicas: $acks")
@@ -255,7 +259,7 @@ class Replica(val arbiter: ActorRef, persistenceProps: Props) extends Actor with
         }
       }
   }
-
+  
   val secondaryPersistenceRetryTimeout = 100 milliseconds
 
   /* TODO Behavior for the replica role. */
