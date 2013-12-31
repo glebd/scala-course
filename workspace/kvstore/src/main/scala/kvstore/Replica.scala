@@ -256,6 +256,8 @@ class Replica(val arbiter: ActorRef, persistenceProps: Props) extends Actor with
       }
   }
 
+  val secondaryPersistenceRetryTimeout = 100 milliseconds
+
   /* TODO Behavior for the replica role. */
   val replica: Receive = common orElse LoggingReceive {
     
@@ -293,7 +295,7 @@ class Replica(val arbiter: ActorRef, persistenceProps: Props) extends Actor with
         case Some(value) => kv = kv + (key -> value)
       }
       persistence ! Persist(key, valueOption, seq)
-      val retry = context.system.scheduler.scheduleOnce(100 milliseconds, self, RetryPersist(key, valueOption, seq))
+      val retry = context.system.scheduler.scheduleOnce(secondaryPersistenceRetryTimeout, self, RetryPersist(key, valueOption, seq))
       retries = retries + (seq -> retry)
       
     case Persisted(key, seq) =>
@@ -314,7 +316,7 @@ class Replica(val arbiter: ActorRef, persistenceProps: Props) extends Actor with
         retries = retries - seq
       }
       persistence ! Persist(key, valueOption, seq)
-      val retry = context.system.scheduler.scheduleOnce(100 milliseconds, self, RetryPersist(key, valueOption, seq))
+      val retry = context.system.scheduler.scheduleOnce(secondaryPersistenceRetryTimeout, self, RetryPersist(key, valueOption, seq))
       retries = retries + (seq -> retry)
   }
   

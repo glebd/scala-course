@@ -47,22 +47,25 @@ class Replicator(val replica: ActorRef) extends Actor with ActorLogging {
     ret
   }
   
+  val retryTimeout = 50 milliseconds
+  val dequeueTimeout = 50 milliseconds
+  
   /* TODO Behavior for the Replicator. */
   def receive: Receive = {
     
     case r @ Replicate(key, valueOption, id) =>
       queue += r
       log.debug(s"[Replicator] Received Replicate($key, $valueOption, $id) from $sender")
-      dequeueMsg = context.system.scheduler.scheduleOnce(1 millisecond, self, Dequeue(sender))
+      dequeueMsg = context.system.scheduler.scheduleOnce(dequeueTimeout, self, Dequeue(sender))
       log.debug(s"[Replicator] Scheduling dequeue from $queue")
       
     case Dequeue(primary) =>
       val r = queue.dequeue
       val seq = nextSeq
       log.debug(s"[Replicator] Dequeued $r, queue: $queue")
-      val reminder = context.system.scheduler.scheduleOnce(1 millisecond, self, Reminder(seq))
+      val reminder = context.system.scheduler.scheduleOnce(retryTimeout, self, Reminder(seq))
       acks = acks + (seq -> (primary, r, reminder))
-      log.debug(s"[Replicator] Scheduled reminder $reminder in 1 ms")
+      log.debug(s"[Replicator] Scheduled reminder $reminder in 100 ms")
       
     case SnapshotAck(key, seq) =>
       val (s, r, reminder) = acks(seq)
@@ -72,7 +75,7 @@ class Replicator(val replica: ActorRef) extends Actor with ActorLogging {
       acks = acks - seq
       log.debug(s"[Replicator] Removed seq $seq from acks, now $acks")
       if (!queue.isEmpty) {
-        dequeueMsg = context.system.scheduler.scheduleOnce(1 millisecond, self, Dequeue(s))
+        dequeueMsg = context.system.scheduler.scheduleOnce(dequeueTimeout, self, Dequeue(s))
         log.debug(s"[Replicator] Scheduling dequeue from $queue")
       } else {
         log.debug("[Replicator] Queue empty")
@@ -84,7 +87,7 @@ class Replicator(val replica: ActorRef) extends Actor with ActorLogging {
         val (s, r, reminder) = acks(seq)
         log.debug(s"[Replicator] Re-sending Snapshot(${r.key}, ${r.valueOption}, $seq)")
         replica ! Snapshot(r.key, r.valueOption, seq)
-        val reminder1 = context.system.scheduler.scheduleOnce(100 milliseconds, self, Reminder(seq))
+        val reminder1 = context.system.scheduler.scheduleOnce(retryTimeout, self, Reminder(seq))
         acks = acks + (seq -> (s, r, reminder1))
         log.debug(s"[Replicator] Scheduled reminder $reminder1 in 100 ms")
       } else {
