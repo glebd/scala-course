@@ -45,34 +45,34 @@ class Step7_CustomSpec
 //    for (_ <- 0 until 1000) randomQuery(client)
 //  }
 
-//  test("case2: Random ops with 3 secondaries") {
-//    val arbiter = TestProbe()
-//
-//    val primary = system.actorOf(
-//      Replica.props(arbiter.ref, Persistence.props(flaky = false)), "case2-primary")
-//    arbiter.expectMsg(Join)
-//    arbiter.send(primary, JoinedPrimary)
-//
-//    val secondaries = (1 to 3).map(id =>
-//      system.actorOf(Replica.props(arbiter.ref, Persistence.props(flaky = true)),
-//        s"case2-secondary-$id"))
-//
-//    secondaries foreach { secondary =>
-//      arbiter.expectMsg(Join)
-//      arbiter.send(secondary, JoinedSecondary)
-//    }
-//
-//    val client = session(primary)
-//    for (i <- 0 until 1000) {
-//      randomQuery(client)
-//      if      (i == 100) arbiter.send(primary, Replicas(Set(secondaries(0))))
-//      else if (i == 200) arbiter.send(primary, Replicas(Set(secondaries(0), secondaries(1))))
-//      else if (i == 300) arbiter.send(primary, Replicas(Set(secondaries(0), secondaries(1), secondaries(2))))
-//      else if (i == 400) arbiter.send(primary, Replicas(Set(secondaries(0), secondaries(1))))
-//      else if (i == 500) arbiter.send(primary, Replicas(Set(secondaries(0))))
-//      else if (i == 600) arbiter.send(primary, Replicas(Set()))
-//    }
-//  }
+  test("case2: Random ops with 3 secondaries") {
+    val arbiter = TestProbe()
+
+    val primary = system.actorOf(
+      Replica.props(arbiter.ref, Persistence.props(flaky = false)), "case2-primary")
+    arbiter.expectMsg(Join)
+    arbiter.send(primary, JoinedPrimary)
+
+    val secondaries = (1 to 3).map(id =>
+      system.actorOf(Replica.props(arbiter.ref, Persistence.props(flaky = true)),
+        s"case2-secondary-$id"))
+
+    secondaries foreach { secondary =>
+      arbiter.expectMsg(Join)
+      arbiter.send(secondary, JoinedSecondary)
+    }
+
+    val client = session(primary)
+    for (i <- 0 until 1000) {
+      randomQuery(client)
+      if      (i == 100) arbiter.send(primary, Replicas(Set(secondaries(0))))
+      else if (i == 200) arbiter.send(primary, Replicas(Set(secondaries(0), secondaries(1))))
+      else if (i == 300) arbiter.send(primary, Replicas(Set(secondaries(0), secondaries(1), secondaries(2))))
+      else if (i == 400) arbiter.send(primary, Replicas(Set(secondaries(0), secondaries(1))))
+      else if (i == 500) arbiter.send(primary, Replicas(Set(secondaries(0))))
+      else if (i == 600) arbiter.send(primary, Replicas(Set()))
+    }
+  }
 
 //  test("case3: Random ops with multiple clusters") {
 //    val arbiter = TestProbe()
