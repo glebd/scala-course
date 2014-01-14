@@ -17,7 +17,7 @@ object Replicator {
   case class SnapshotAck(key: String, seq: Long)
   
   case class Reminder(seq: Long)
-  case class Dequeue(primary: ActorRef)
+  case class Dequeue(key: String, primary: ActorRef)
 
   def props(replica: ActorRef): Props = Props(new Replicator(replica))
 }
@@ -36,7 +36,7 @@ class Replicator(val replica: ActorRef) extends Actor with ActorLogging {
   // a sequence of not-yet-sent snapshots (you can disregard this if not implementing batching)
   var pending = Vector.empty[Snapshot]
   
-  val queue = Queue.empty[Replicate]
+  var queueMap = Map.empty[String, Queue[Replicate]]
   
   var dequeueMsg: Cancellable = null
   
@@ -54,18 +54,30 @@ class Replicator(val replica: ActorRef) extends Actor with ActorLogging {
   def receive: Receive = {
     
     case r @ Replicate(key, valueOption, id) =>
-      queue += r
+      // add to key->queue map
+      queueMap.get(key) match {
+        case Some(q) =>
+          q += r
+        case None =>
+          val q = Queue.empty[Replicate]
+          q += r
+          queueMap = queueMap + (key -> q)
+      }
       log.debug(s"[Replicator] Received Replicate($key, $valueOption, $id) from $sender")
-      dequeueMsg = context.system.scheduler.scheduleOnce(dequeueTimeout, self, Dequeue(sender))
-      log.debug(s"[Replicator] Scheduling dequeue from $queue")
+      dequeueMsg = context.system.scheduler.scheduleOnce(dequeueTimeout, self, Dequeue(key, sender))
+      log.debug(s"[Replicator] Scheduling dequeue from $queueMap")
       
-    case Dequeue(primary) =>
-      val r = queue.dequeue
-      val seq = nextSeq
-      log.debug(s"[Replicator] Dequeued $r, queue: $queue")
-      val reminder = context.system.scheduler.scheduleOnce(retryTimeout, self, Reminder(seq))
-      acks = acks + (seq -> (primary, r, reminder))
-      log.debug(s"[Replicator] Scheduled reminder $reminder in 100 ms")
+    case Dequeue(key, primary) =>
+      if (queueMap.contains(key)) {
+        val r = queueMap(key).dequeue
+        val seq = nextSeq
+        log.debug(s"[Replicator] Dequeued $r for k$key, queue: $queueMap")
+        val reminder = context.system.scheduler.scheduleOnce(retryTimeout, self, Reminder(seq))
+        acks = acks + (seq -> (primary, r, reminder))
+        log.debug(s"[Replicator] Scheduled reminder $reminder in 100 ms")
+      } else {
+        log.error(s"[Replicator] Dequeue($key, $primary) and the queue is empty")
+      }
       
     case SnapshotAck(key, seq) =>
       val (s, r, reminder) = acks(seq)
@@ -74,11 +86,13 @@ class Replicator(val replica: ActorRef) extends Actor with ActorLogging {
       log.debug(s"[Replicator] Sending Replicated($key, ${r.id}) to $s")
       acks = acks - seq
       log.debug(s"[Replicator] Removed seq $seq from acks, now $acks")
-      if (!queue.isEmpty) {
-        dequeueMsg = context.system.scheduler.scheduleOnce(dequeueTimeout, self, Dequeue(s))
-        log.debug(s"[Replicator] Scheduling dequeue from $queue")
-      } else {
-        log.debug("[Replicator] Queue empty")
+      if (queueMap.contains(key)) {
+        if (!queueMap(key).isEmpty) {
+          dequeueMsg = context.system.scheduler.scheduleOnce(dequeueTimeout, self, Dequeue(key, s))
+          log.debug(s"[Replicator] Scheduling dequeue for k$key from $queueMap")
+        } else {
+          log.debug("[Replicator] Queue for k$key is empty")
+        }
       }
       
     case Reminder(seq) =>
